@@ -1,0 +1,68 @@
+14:13:05 **** Incremental Build of configuration Debug for project pr ****
+make all 
+Building file: ../Src/main.c
+Invoking: MCU GCC Compiler
+D:\Studia wszystko\Studia 5\sem 3\praca magisterska\kody STM\pr\Debug
+arm-none-eabi-gcc -mcpu=cortex-m4 -mthumb -mfloat-abi=hard -mfpu=fpv4-sp-d16 '-D__weak=__attribute__((weak))' '-D__packed=__attribute__((__packed__))' -DUSE_HAL_DRIVER -DSTM32L475xx -I"D:/Studia wszystko/Studia 5/sem 3/praca magisterska/kody STM/pr/Inc" -I"D:/Studia wszystko/Studia 5/sem 3/praca magisterska/kody STM/pr/Drivers/STM32L4xx_HAL_Driver/Inc" -I"D:/Studia wszystko/Studia 5/sem 3/praca magisterska/kody STM/pr/Drivers/STM32L4xx_HAL_Driver/Inc/Legacy" -I"D:/Studia wszystko/Studia 5/sem 3/praca magisterska/kody STM/pr/Drivers/CMSIS/Device/ST/STM32L4xx/Include" -I"D:/Studia wszystko/Studia 5/sem 3/praca magisterska/kody STM/pr/Drivers/CMSIS/Include"  -Og -g3 -Wall -fmessage-length=0 -ffunction-sections -c -fmessage-length=0 -MMD -MP -MF"Src/main.d" -MT"Src/main.o" -o "Src/main.o" "../Src/main.c"
+../Src/main.c: In function 'BMP388_calculate_temp_coef':
+../Src/main.c:242:29: warning: implicit declaration of function 'pow' [-Wimplicit-function-declaration]
+  par_t1 = (float)NVM_PAR_T1*pow(2,8);//7103488
+                             ^~~
+../Src/main.c:242:29: warning: incompatible implicit declaration of built-in function 'pow'
+../Src/main.c:242:29: note: include '<math.h>' or provide a declaration of 'pow'
+../Src/main.c: In function 'BMP388_calculate_pres_coef':
+../Src/main.c:248:30: warning: incompatible implicit declaration of built-in function 'pow'
+  par_p1 = ((float)NVM_PAR_P1-pow(2,14))/pow(2,20);
+                              ^~~
+../Src/main.c:248:30: note: include '<math.h>' or provide a declaration of 'pow'
+../Src/main.c: In function 'main':
+../Src/main.c:481:4: warning: implicit declaration of function 'sprintf' [-Wimplicit-function-declaration]
+    sprintf(wysylanie, "temp%0.2f ", wynik);
+    ^~~~~~~
+../Src/main.c:481:4: warning: incompatible implicit declaration of built-in function 'sprintf'
+../Src/main.c:481:4: note: include '<stdio.h>' or provide a declaration of 'sprintf'
+../Src/main.c:481:12: warning: pointer targets in passing argument 1 of 'sprintf' differ in signedness [-Wpointer-sign]
+    sprintf(wysylanie, "temp%0.2f ", wynik);
+            ^~~~~~~~~
+../Src/main.c:481:12: note: expected 'char *' but argument is of type 'uint8_t * {aka unsigned char *}'
+../Src/main.c:482:31: warning: passing argument 2 of 'HAL_UART_Transmit' from incompatible pointer type [-Wincompatible-pointer-types]
+    HAL_UART_Transmit(&huart5, &wysylanie, sizeof(wysylanie), 100);
+                               ^
+In file included from D:/Studia wszystko/Studia 5/sem 3/praca magisterska/kody STM/pr/Inc/stm32l4xx_hal_conf.h:380:0,
+                 from D:/Studia wszystko/Studia 5/sem 3/praca magisterska/kody STM/pr/Drivers/STM32L4xx_HAL_Driver/Inc/stm32l4xx_hal.h:46,
+                 from D:/Studia wszystko/Studia 5/sem 3/praca magisterska/kody STM/pr/Inc/main.h:51,
+                 from ../Src/main.c:42:
+D:/Studia wszystko/Studia 5/sem 3/praca magisterska/kody STM/pr/Drivers/STM32L4xx_HAL_Driver/Inc/stm32l4xx_hal_uart.h:1597:19: note: expected 'uint8_t * {aka unsigned char *}' but argument is of type 'uint8_t (*)[20] {aka unsigned char (*)[20]}'
+ HAL_StatusTypeDef HAL_UART_Transmit(UART_HandleTypeDef *huart, uint8_t *pData, uint16_t Size, uint32_t Timeout);
+                   ^~~~~~~~~~~~~~~~~
+../Src/main.c:487:12: warning: pointer targets in passing argument 1 of 'sprintf' differ in signedness [-Wpointer-sign]
+    sprintf(wysylanie, "cisn%0.2f ", wynik);
+            ^~~~~~~~~
+../Src/main.c:487:12: note: expected 'char *' but argument is of type 'uint8_t * {aka unsigned char *}'
+../Src/main.c:488:31: warning: passing argument 2 of 'HAL_UART_Transmit' from incompatible pointer type [-Wincompatible-pointer-types]
+    HAL_UART_Transmit(&huart5, &wysylanie, sizeof(wysylanie), 100);
+                               ^
+In file included from D:/Studia wszystko/Studia 5/sem 3/praca magisterska/kody STM/pr/Inc/stm32l4xx_hal_conf.h:380:0,
+                 from D:/Studia wszystko/Studia 5/sem 3/praca magisterska/kody STM/pr/Drivers/STM32L4xx_HAL_Driver/Inc/stm32l4xx_hal.h:46,
+                 from D:/Studia wszystko/Studia 5/sem 3/praca magisterska/kody STM/pr/Inc/main.h:51,
+                 from ../Src/main.c:42:
+D:/Studia wszystko/Studia 5/sem 3/praca magisterska/kody STM/pr/Drivers/STM32L4xx_HAL_Driver/Inc/stm32l4xx_hal_uart.h:1597:19: note: expected 'uint8_t * {aka unsigned char *}' but argument is of type 'uint8_t (*)[20] {aka unsigned char (*)[20]}'
+ HAL_StatusTypeDef HAL_UART_Transmit(UART_HandleTypeDef *huart, uint8_t *pData, uint16_t Size, uint32_t Timeout);
+                   ^~~~~~~~~~~~~~~~~
+Finished building: ../Src/main.c
+ 
+Building target: pr.elf
+Invoking: MCU GCC Linker
+arm-none-eabi-gcc -mcpu=cortex-m4 -mthumb -mfloat-abi=hard -mfpu=fpv4-sp-d16 -specs=nosys.specs -specs=nano.specs -u_printf_float -T"../STM32L475RETx_FLASH.ld" -Wl,-Map=output.map -Wl,--gc-sections -o "pr.elf" @"objects.list"   -lm
+Finished building target: pr.elf
+ 
+make --no-print-directory post-build
+Generating hex and Printing size information:
+arm-none-eabi-objcopy -O ihex "pr.elf" "pr.hex"
+arm-none-eabi-size "pr.elf"
+   text	   data	    bss	    dec	    hex	filename
+  25784	    488	   2144	  28416	   6f00	pr.elf
+ 
+
+14:13:09 Build Finished (took 3s.928ms)
+

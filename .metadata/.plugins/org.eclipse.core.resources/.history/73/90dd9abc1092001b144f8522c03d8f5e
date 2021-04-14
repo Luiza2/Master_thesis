@@ -1,0 +1,24 @@
+#include "BMP388.h"
+
+#include "stm32l4xx_hal.h"
+
+extern I2C_HandleTypeDef hi2c1;
+
+uint8_t T1_reg1 = 0;
+	uint8_t T1_reg2 = 0;
+	uint8_t T2_reg1 = 0;
+	uint8_t T2_reg2 = 0;
+	uint8_t T3_reg1 = 0;
+	uint8_t P1_reg1 = 0;
+	uint8_t P1_reg2 = 0;
+	uint8_t P2_reg1 = 0;
+	uint8_t P2_reg2 = 0;
+	uint8_t P3_reg1 = 0;
+
+void BMP388_read_temp_reg(void){
+	HAL_I2C_Mem_Read(&hi2c1, BMP388_ADDRESS, 0x31, 1, &T1_reg1, 1, 100);
+	HAL_I2C_Mem_Read(&hi2c1, BMP388_ADDRESS, 0x32, 1, &T1_reg2, 1, 100);
+	HAL_I2C_Mem_Read(&hi2c1, BMP388_ADDRESS, 0x33, 1, &T2_reg1, 1, 100);
+	HAL_I2C_Mem_Read(&hi2c1, BMP388_ADDRESS, 0x34, 1, &T2_reg2, 1, 100);
+	HAL_I2C_Mem_Read(&hi2c1, BMP388_ADDRESS, 0x35, 1, &T3_reg1, 1, 100);
+}

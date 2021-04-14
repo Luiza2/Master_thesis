@@ -1,0 +1,115 @@
+22:52:06 **** Incremental Build of configuration Debug for project czujniki_nucleo ****
+make all 
+Building file: ../Src/main.c
+Invoking: MCU GCC Compiler
+D:\Studia wszystko\Studia 5\sem 3\praca magisterska\kody STM\czujniki_nucleo\Debug
+arm-none-eabi-gcc -mcpu=cortex-m4 -mthumb -mfloat-abi=hard -mfpu=fpv4-sp-d16 '-D__weak=__attribute__((weak))' '-D__packed=__attribute__((__packed__))' -DUSE_HAL_DRIVER -DSTM32F446xx -I"D:/Studia wszystko/Studia 5/sem 3/praca magisterska/kody STM/czujniki_nucleo/Inc" -I"D:/Studia wszystko/Studia 5/sem 3/praca magisterska/kody STM/czujniki_nucleo/Drivers/STM32F4xx_HAL_Driver/Inc" -I"D:/Studia wszystko/Studia 5/sem 3/praca magisterska/kody STM/czujniki_nucleo/Drivers/STM32F4xx_HAL_Driver/Inc/Legacy" -I"D:/Studia wszystko/Studia 5/sem 3/praca magisterska/kody STM/czujniki_nucleo/Drivers/CMSIS/Device/ST/STM32F4xx/Include" -I"D:/Studia wszystko/Studia 5/sem 3/praca magisterska/kody STM/czujniki_nucleo/Drivers/CMSIS/Include"  -Og -g3 -Wall -fmessage-length=0 -ffunction-sections -c -fmessage-length=0 -MMD -MP -MF"Src/main.d" -MT"Src/main.o" -o "Src/main.o" "../Src/main.c"
+../Src/main.c:93:0: warning: "BMP388_CHIP_ID" redefined
+ #define BMP388_CHIP_ID 0x00
+ 
+In file included from D:/Studia wszystko/Studia 5/sem 3/praca magisterska/kody STM/czujniki_nucleo/Inc/bmp388.h:62:0,
+                 from ../Src/main.c:47:
+D:/Studia wszystko/Studia 5/sem 3/praca magisterska/kody STM/czujniki_nucleo/Inc/bmp388_defs.h:126:0: note: this is the location of the previous definition
+ #define BMP388_CHIP_ID  UINT8_C(0x60)
+ 
+../Src/main.c: In function 'main':
+../Src/main.c:413:12: warning: pointer targets in passing argument 1 of 'sprintf' differ in signedness [-Wpointer-sign]
+    sprintf(wysylanie, "temp%0.2f ", wynik);
+            ^~~~~~~~~
+In file included from D:/Studia wszystko/Studia 5/sem 3/praca magisterska/kody STM/czujniki_nucleo/Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_def.h:48:0,
+                 from D:/Studia wszystko/Studia 5/sem 3/praca magisterska/kody STM/czujniki_nucleo/Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_rcc.h:45,
+                 from D:/Studia wszystko/Studia 5/sem 3/praca magisterska/kody STM/czujniki_nucleo/Inc/stm32f4xx_hal_conf.h:244,
+                 from D:/Studia wszystko/Studia 5/sem 3/praca magisterska/kody STM/czujniki_nucleo/Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal.h:46,
+                 from D:/Studia wszystko/Studia 5/sem 3/praca magisterska/kody STM/czujniki_nucleo/Inc/main.h:51,
+                 from ../Src/main.c:42:
+c:\ac6\systemworkbench\plugins\fr.ac6.mcu.externaltools.arm-none.win32_1.17.0.201812190825\tools\compiler\arm-none-eabi\include\stdio.h:244:5: note: expected 'char * restrict' but argument is of type 'uint8_t * {aka unsigned char *}'
+ int sprintf (char *__restrict, const char *__restrict, ...)
+     ^~~~~~~
+../Src/main.c:414:31: warning: passing argument 2 of 'HAL_UART_Transmit' from incompatible pointer type [-Wincompatible-pointer-types]
+    HAL_UART_Transmit(&huart2, &wysylanie, sizeof(wysylanie), 100);
+                               ^
+In file included from D:/Studia wszystko/Studia 5/sem 3/praca magisterska/kody STM/czujniki_nucleo/Inc/stm32f4xx_hal_conf.h:372:0,
+                 from D:/Studia wszystko/Studia 5/sem 3/praca magisterska/kody STM/czujniki_nucleo/Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal.h:46,
+                 from D:/Studia wszystko/Studia 5/sem 3/praca magisterska/kody STM/czujniki_nucleo/Inc/main.h:51,
+                 from ../Src/main.c:42:
+D:/Studia wszystko/Studia 5/sem 3/praca magisterska/kody STM/czujniki_nucleo/Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_uart.h:645:19: note: expected 'uint8_t * {aka unsigned char *}' but argument is of type 'uint8_t (*)[20] {aka unsigned char (*)[20]}'
+ HAL_StatusTypeDef HAL_UART_Transmit(UART_HandleTypeDef *huart, uint8_t *pData, uint16_t Size, uint32_t Timeout);
+                   ^~~~~~~~~~~~~~~~~
+../Src/main.c:448:12: warning: pointer targets in passing argument 1 of 'sprintf' differ in signedness [-Wpointer-sign]
+    sprintf(wysylanie, "cisn%0.2f ", comp_press);
+            ^~~~~~~~~
+In file included from D:/Studia wszystko/Studia 5/sem 3/praca magisterska/kody STM/czujniki_nucleo/Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_def.h:48:0,
+                 from D:/Studia wszystko/Studia 5/sem 3/praca magisterska/kody STM/czujniki_nucleo/Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_rcc.h:45,
+                 from D:/Studia wszystko/Studia 5/sem 3/praca magisterska/kody STM/czujniki_nucleo/Inc/stm32f4xx_hal_conf.h:244,
+                 from D:/Studia wszystko/Studia 5/sem 3/praca magisterska/kody STM/czujniki_nucleo/Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal.h:46,
+                 from D:/Studia wszystko/Studia 5/sem 3/praca magisterska/kody STM/czujniki_nucleo/Inc/main.h:51,
+                 from ../Src/main.c:42:
+c:\ac6\systemworkbench\plugins\fr.ac6.mcu.externaltools.arm-none.win32_1.17.0.201812190825\tools\compiler\arm-none-eabi\include\stdio.h:244:5: note: expected 'char * restrict' but argument is of type 'uint8_t * {aka unsigned char *}'
+ int sprintf (char *__restrict, const char *__restrict, ...)
+     ^~~~~~~
+../Src/main.c:449:31: warning: passing argument 2 of 'HAL_UART_Transmit' from incompatible pointer type [-Wincompatible-pointer-types]
+    HAL_UART_Transmit(&huart2, &wysylanie, sizeof(wysylanie), 100);
+                               ^
+In file included from D:/Studia wszystko/Studia 5/sem 3/praca magisterska/kody STM/czujniki_nucleo/Inc/stm32f4xx_hal_conf.h:372:0,
+                 from D:/Studia wszystko/Studia 5/sem 3/praca magisterska/kody STM/czujniki_nucleo/Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal.h:46,
+                 from D:/Studia wszystko/Studia 5/sem 3/praca magisterska/kody STM/czujniki_nucleo/Inc/main.h:51,
+                 from ../Src/main.c:42:
+D:/Studia wszystko/Studia 5/sem 3/praca magisterska/kody STM/czujniki_nucleo/Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_uart.h:645:19: note: expected 'uint8_t * {aka unsigned char *}' but argument is of type 'uint8_t (*)[20] {aka unsigned char (*)[20]}'
+ HAL_StatusTypeDef HAL_UART_Transmit(UART_HandleTypeDef *huart, uint8_t *pData, uint16_t Size, uint32_t Timeout);
+                   ^~~~~~~~~~~~~~~~~
+../Src/main.c:472:17: warning: pointer targets in passing argument 1 of 'sprintf' differ in signedness [-Wpointer-sign]
+         sprintf(wysylanie, "TEMP: %0.2f ", temperatura);
+                 ^~~~~~~~~
+In file included from D:/Studia wszystko/Studia 5/sem 3/praca magisterska/kody STM/czujniki_nucleo/Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_def.h:48:0,
+                 from D:/Studia wszystko/Studia 5/sem 3/praca magisterska/kody STM/czujniki_nucleo/Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_rcc.h:45,
+                 from D:/Studia wszystko/Studia 5/sem 3/praca magisterska/kody STM/czujniki_nucleo/Inc/stm32f4xx_hal_conf.h:244,
+                 from D:/Studia wszystko/Studia 5/sem 3/praca magisterska/kody STM/czujniki_nucleo/Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal.h:46,
+                 from D:/Studia wszystko/Studia 5/sem 3/praca magisterska/kody STM/czujniki_nucleo/Inc/main.h:51,
+                 from ../Src/main.c:42:
+c:\ac6\systemworkbench\plugins\fr.ac6.mcu.externaltools.arm-none.win32_1.17.0.201812190825\tools\compiler\arm-none-eabi\include\stdio.h:244:5: note: expected 'char * restrict' but argument is of type 'uint8_t * {aka unsigned char *}'
+ int sprintf (char *__restrict, const char *__restrict, ...)
+     ^~~~~~~
+../Src/main.c:475:17: warning: pointer targets in passing argument 1 of 'sprintf' differ in signedness [-Wpointer-sign]
+         sprintf(wysylanie, "PRES: %0.2f ", cisnienie);
+                 ^~~~~~~~~
+In file included from D:/Studia wszystko/Studia 5/sem 3/praca magisterska/kody STM/czujniki_nucleo/Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_def.h:48:0,
+                 from D:/Studia wszystko/Studia 5/sem 3/praca magisterska/kody STM/czujniki_nucleo/Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_rcc.h:45,
+                 from D:/Studia wszystko/Studia 5/sem 3/praca magisterska/kody STM/czujniki_nucleo/Inc/stm32f4xx_hal_conf.h:244,
+                 from D:/Studia wszystko/Studia 5/sem 3/praca magisterska/kody STM/czujniki_nucleo/Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal.h:46,
+                 from D:/Studia wszystko/Studia 5/sem 3/praca magisterska/kody STM/czujniki_nucleo/Inc/main.h:51,
+                 from ../Src/main.c:42:
+c:\ac6\systemworkbench\plugins\fr.ac6.mcu.externaltools.arm-none.win32_1.17.0.201812190825\tools\compiler\arm-none-eabi\include\stdio.h:244:5: note: expected 'char * restrict' but argument is of type 'uint8_t * {aka unsigned char *}'
+ int sprintf (char *__restrict, const char *__restrict, ...)
+     ^~~~~~~
+../Src/main.c:223:11: warning: unused variable 'result' [-Wunused-variable]
+   uint8_t result;
+           ^~~~~~
+../Src/main.c:221:21: warning: variable 'status' set but not used [-Wunused-but-set-variable]
+   HAL_StatusTypeDef status = 0;
+                     ^~~~~~
+../Src/main.c:189:10: warning: variable 'rslt388' set but not used [-Wunused-but-set-variable]
+   int8_t rslt388 = BMP388_OK;
+          ^~~~~~~
+../Src/main.c:187:22: warning: unused variable 'comp_data388' [-Wunused-variable]
+   struct bmp388_data comp_data388;
+                      ^~~~~~~~~~~~
+../Src/main.c:182:11: warning: unused variable 'configuration' [-Wunused-variable]
+   uint8_t configuration[] = "AT+SETPANID ABCD";
+           ^~~~~~~~~~~~~
+Finished building: ../Src/main.c
+ 
+Building target: czujniki_nucleo.elf
+Invoking: MCU GCC Linker
+arm-none-eabi-gcc -mcpu=cortex-m4 -mthumb -mfloat-abi=hard -mfpu=fpv4-sp-d16 -specs=nosys.specs -specs=nano.specs -u_printf_float -T"../STM32F446RETx_FLASH.ld" -Wl,-Map=output.map -Wl,--gc-sections -o "czujniki_nucleo.elf" @"objects.list"   -lm
+Finished building target: czujniki_nucleo.elf
+ 
+make --no-print-directory post-build
+Generating hex and Printing size information:
+arm-none-eabi-objcopy -O ihex "czujniki_nucleo.elf" "czujniki_nucleo.hex"
+arm-none-eabi-size "czujniki_nucleo.elf"
+   text	   data	    bss	    dec	    hex	filename
+  28212	    484	   1868	  30564	   7764	czujniki_nucleo.elf
+ 
+
+22:52:17 Build Finished (took 11s.665ms)
+

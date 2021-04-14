@@ -1,0 +1,22 @@
+#ifndef BMP388_H_
+#define BMP388_H_
+
+#include "main.h"
+#include <stdint.h>
+#include <stddef.h>
+
+#define BMP388_ADDRESS UINT8_C(0xEC)
+#define BMP388_CHIP_ID 0x00
+#define BMP388_STATUS 0x03
+#define BMP388_PRESS_XLSB 0x04
+#define BMP388_PRESS_LSB 0x05
+#define BMP388_PRESS_MSB 0x06
+#define BMP388_TEMP_XLSB 0x07
+#define BMP388_TEMP_LSB 0x08
+#define BMP388_TEMP_MSB 0x09
+#define BMP388_PWR_CTRL 0x1B
+#define BMP388_OSR 0x1C
+
+
+
+#endif
