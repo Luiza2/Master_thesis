@@ -40,6 +40,7 @@
 
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
+#include "math.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
@@ -59,6 +60,9 @@
 #define BMP388_TEMP_MSB 0x09
 #define BMP388_PWR_CTRL 0x1B
 #define BMP388_OSR 0x1C
+
+
+#define CLK_FREQ 8000000
 /* USER CODE END PTD */
 
 /* Private define ------------------------------------------------------------*/
@@ -112,7 +116,7 @@ uint8_t T1_reg1 = 0;
 		  uint8_t press0 = 0;
 		  uint8_t press1 = 0;
 		  uint8_t press2 = 0;
-		  uint32_t temperature = 0;
+		  float temperature = 0;
 		  uint32_t pressure = 0;
 		  float wynik = 0;
 		  float partial_data1 = 0;
@@ -136,7 +140,8 @@ uint8_t T1_reg1 = 0;
 		  	    float par_p9 = 0;
 		  	    float par_p10 = 0;
 		  	    float par_p11 = 0;
-
+		 volatile 	  float srednia = 0;
+volatile uint32_t licznik = 0;
 		  	  uint32_t data_xlsb;
 		  	        uint32_t data_lsb;
 		  	        uint32_t data_msb;
@@ -390,6 +395,8 @@ void GPIO_stage2(void)
   HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
   //uruchomienie przerwania
   HAL_GPIO_EXTI_IRQHandler(GPIO_PIN_1);
+  HAL_NVIC_SetPriority(EXTI1_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(EXTI1_IRQn);
 
   //PB0 output 0
   GPIO_InitStruct.Pin = GPIO_PIN_0;
@@ -399,18 +406,56 @@ void GPIO_stage2(void)
   HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
   HAL_GPIO_WritePin(GPIOB, GPIO_PIN_0, GPIO_PIN_RESET);
+
+  //zerowanie timera
+  __HAL_TIM_SET_COUNTER(&htim2, 0);
+  //uruchomienie timera
+  HAL_TIM_Base_Start(&htim2);
 }
 
 void pt1000_temp_meas(void){
-	GPIO_stage1();//T1 output high, T2 input high impedance
-	HAL_Delay(1000);
-	GPIO_stage2();
+	uint32_t suma = 0;
+	float resistance = 0;
+	srednia = 0;
+	float time_us = 0, time = 0;
+	float delta = 0;
+	for(int i = 0 ; i < 20; i++){
+		GPIO_stage1();//T1 output high, T2 input high impedance
+		HAL_Delay(500);
+		GPIO_stage2();
+		HAL_Delay(500);
+		suma += licznik;
+		srednia = (float)suma/20;
+	}
+	time_us = 1000000*srednia/CLK_FREQ;
+	time = srednia/CLK_FREQ;
+	sprintf(wyslij, "time_us %f ", time_us);
+	HAL_UART_Transmit(&huart5, &wyslij, sizeof(wyslij), 100);
 
+	resistance = (time+0.000013)/0.00000010116;
+	sprintf(wyslij, "resistance %f ", resistance);
+	HAL_UART_Transmit(&huart5, &wyslij, sizeof(wyslij), 100);
+
+	delta = 0.0000152748 + 0.00000231 * (1-resistance/1000);
+	temperature = (0.0039083-sqrt(delta))/(0.000001155);
+
+	sprintf(wyslij, "delta %f ", sqrt(delta));
+	HAL_UART_Transmit(&huart5, &wyslij, sizeof(wyslij), 100);
+
+	sprintf(wyslij, "temperature %f ", temperature);
+		HAL_UART_Transmit(&huart5, &wyslij, sizeof(wyslij), 100);
 }
 
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin){
 	if(GPIO_Pin == GPIO_PIN_0){
 		HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_2);
+	}else if(GPIO_Pin == GPIO_PIN_1)
+	{
+	    HAL_TIM_Base_Stop(&htim2);
+	    licznik = __HAL_TIM_GET_COUNTER(&htim2);
+
+	    //sprintf(wyslij, "przerwanie %u ", licznik);
+	    //HAL_UART_Transmit(&huart5, &wyslij, sizeof(wyslij), 100);
 	}
 }
 /* USER CODE END PFP */
@@ -455,11 +500,27 @@ int main(void)
   /* USER CODE BEGIN 2 */
 
   uint8_t wysylanie[20] = "                    ";
-
+  uint32_t licznik = 0;
 
   struct bmp388_calib_data calib_data;
   BMP388_init(&calib_data);
+  HAL_Delay(2000);
 
+  pt1000_temp_meas();
+
+
+  /*
+  HAL_TIM_Base_Start(&htim2);
+  HAL_TIM_Base_Stop(&htim2);
+  licznik = __HAL_TIM_GET_COUNTER(&htim2);
+  sprintf(wyslij, "licznik: %u ", licznik);
+  HAL_UART_Transmit(&huart5, &wyslij, sizeof(wyslij), 100);
+  __HAL_TIM_SET_COUNTER(&htim2, 0);
+
+  licznik = __HAL_TIM_GET_COUNTER(&htim2);
+    sprintf(wyslij, "po zerowaniu: %u ", licznik);
+    HAL_UART_Transmit(&huart5, &wyslij, sizeof(wyslij), 100);
+  */
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -469,13 +530,24 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-	  //pt1000_temp_meas();
-	  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_2, GPIO_PIN_RESET);
-	  HAL_Delay(500);
+	  pt1000_temp_meas();
 
-	  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_2, GPIO_PIN_SET);
-	  HAL_Delay(500);
+	  //HAL_GPIO_WritePin(GPIOA, GPIO_PIN_2, GPIO_PIN_RESET);
+	  //HAL_GPIO_WritePin(GPIOB, GPIO_PIN_0, GPIO_PIN_RESET);
+	  //HAL_Delay(1000);
 
+	  //HAL_GPIO_WritePin(GPIOA, GPIO_PIN_2, GPIO_PIN_SET);
+	  //HAL_GPIO_WritePin(GPIOB, GPIO_PIN_0, GPIO_PIN_SET);
+	  //HAL_Delay(1000);
+
+
+
+	  //licznik = __HAL_TIM_GET_COUNTER(&htim2);
+
+	  //sprintf(wysylanie, "%u ", licznik);
+	  //HAL_UART_Transmit(&huart5, &wysylanie, sizeof(wysylanie), 100);
+
+	  /*
 	  wynik = BMP388_measure_temp();
 
 	  sprintf(wysylanie, "temp%0.2f ", wynik);
@@ -485,7 +557,7 @@ int main(void)
 	  wynik /= 128;
 
 	  sprintf(wysylanie, "cisn%0.2f ", wynik);
-	  HAL_UART_Transmit(&huart5, &wysylanie, sizeof(wysylanie), 100);
+	  HAL_UART_Transmit(&huart5, &wysylanie, sizeof(wysylanie), 100);*/
 
   }
   /* USER CODE END 3 */
@@ -501,17 +573,10 @@ void SystemClock_Config(void)
   RCC_ClkInitTypeDef RCC_ClkInitStruct = {0};
   RCC_PeriphCLKInitTypeDef PeriphClkInit = {0};
 
-  /**Configure LSE Drive Capability 
-  */
-  HAL_PWR_EnableBkUpAccess();
-  __HAL_RCC_LSEDRIVE_CONFIG(RCC_LSEDRIVE_LOW);
   /**Initializes the CPU, AHB and APB busses clocks 
   */
-  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_LSE|RCC_OSCILLATORTYPE_MSI;
-  RCC_OscInitStruct.LSEState = RCC_LSE_ON;
-  RCC_OscInitStruct.MSIState = RCC_MSI_ON;
-  RCC_OscInitStruct.MSICalibrationValue = 0;
-  RCC_OscInitStruct.MSIClockRange = RCC_MSIRANGE_6;
+  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSE;
+  RCC_OscInitStruct.HSEState = RCC_HSE_ON;
   RCC_OscInitStruct.PLL.PLLState = RCC_PLL_NONE;
   if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
   {
@@ -521,7 +586,7 @@ void SystemClock_Config(void)
   */
   RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK|RCC_CLOCKTYPE_SYSCLK
                               |RCC_CLOCKTYPE_PCLK1|RCC_CLOCKTYPE_PCLK2;
-  RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_MSI;
+  RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_HSE;
   RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
   RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV1;
   RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV1;
@@ -545,9 +610,6 @@ void SystemClock_Config(void)
   {
     Error_Handler();
   }
-  /**Enable MSI Auto calibration 
-  */
-  HAL_RCCEx_EnableMSIPLLMode();
 }
 
 /**
@@ -566,7 +628,7 @@ static void MX_I2C1_Init(void)
 
   /* USER CODE END I2C1_Init 1 */
   hi2c1.Instance = I2C1;
-  hi2c1.Init.Timing = 0x00000E14;
+  hi2c1.Init.Timing = 0x00707CBB;
   hi2c1.Init.OwnAddress1 = 0;
   hi2c1.Init.AddressingMode = I2C_ADDRESSINGMODE_7BIT;
   hi2c1.Init.DualAddressMode = I2C_DUALADDRESS_DISABLE;
@@ -617,7 +679,7 @@ static void MX_TIM2_Init(void)
   htim2.Instance = TIM2;
   htim2.Init.Prescaler = 0;
   htim2.Init.CounterMode = TIM_COUNTERMODE_UP;
-  htim2.Init.Period = 0;
+  htim2.Init.Period = 4294967295;
   htim2.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
   htim2.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
   if (HAL_TIM_Base_Init(&htim2) != HAL_OK)
@@ -774,7 +836,7 @@ static void MX_GPIO_Init(void)
 
   /*Configure GPIO pin : PB1 */
   GPIO_InitStruct.Pin = GPIO_PIN_1;
-  GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
+  GPIO_InitStruct.Mode = GPIO_MODE_IT_FALLING;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
