@@ -1,4 +1,4 @@
-22:52:06 **** Incremental Build of configuration Debug for project czujniki_nucleo ****
+22:07:32 **** Incremental Build of configuration Debug for project czujniki_nucleo ****
 make all 
 Building file: ../Src/main.c
 Invoking: MCU GCC Compiler
@@ -111,5 +111,5 @@ arm-none-eabi-size "czujniki_nucleo.elf"
   28212	    484	   1868	  30564	   7764	czujniki_nucleo.elf
  
 
-22:52:17 Build Finished (took 11s.665ms)
+22:07:41 Build Finished (took 8s.680ms)
 

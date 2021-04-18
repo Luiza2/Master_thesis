@@ -1,7 +1,0 @@
-#ifndef BMP388_H_
-#define BMP388_H_
-
-#define ZMIENNA 0x04
-
-
-#endif

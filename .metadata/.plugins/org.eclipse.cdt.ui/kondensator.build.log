@@ -1,6 +1,6 @@
-18:23:29 **** Incremental Build of configuration Debug for project kondensator ****
+22:07:42 **** Incremental Build of configuration Debug for project kondensator ****
 make all 
 make: Nothing to be done for 'all'.
 
-18:23:30 Build Finished (took 890ms)
+22:07:43 Build Finished (took 1s.510ms)
 

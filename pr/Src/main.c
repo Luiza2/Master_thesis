@@ -140,7 +140,7 @@ uint8_t T1_reg1 = 0;
 		  	    float par_p9 = 0;
 		  	    float par_p10 = 0;
 		  	    float par_p11 = 0;
-		 volatile 	  float srednia = 0;
+		 volatile 	  float srednia = 0, srednia1 = 0, srednia2 = 0, srednia3;
 volatile uint32_t licznik = 0;
 		  	  uint32_t data_xlsb;
 		  	        uint32_t data_lsb;
@@ -363,7 +363,7 @@ void BMP388_init(struct bmp388_calib_data *calib){
 	BMP388_calculate_pres_coef();
 }
 
-void GPIO_stage1(void)
+void GPIO_stage1_method1(void)
 {
   GPIO_InitTypeDef GPIO_InitStruct = {0};
 
@@ -384,7 +384,7 @@ void GPIO_stage1(void)
   HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 }
 
-void GPIO_stage2(void)
+void GPIO_stage2_method1(void)
 {
   GPIO_InitTypeDef GPIO_InitStruct = {0};
 
@@ -413,37 +413,317 @@ void GPIO_stage2(void)
   HAL_TIM_Base_Start(&htim2);
 }
 
-void pt1000_temp_meas(void){
+void pt1000_temp_meas_method1(void){
 	uint32_t suma = 0;
 	float resistance = 0;
 	srednia = 0;
 	float time_us = 0, time = 0;
 	float delta = 0;
 	for(int i = 0 ; i < 20; i++){
-		GPIO_stage1();//T1 output high, T2 input high impedance
-		HAL_Delay(500);
-		GPIO_stage2();
-		HAL_Delay(500);
+		GPIO_stage1_method1();//T1 output high, T2 input high impedance
+		HAL_Delay(1);
+		GPIO_stage2_method1();
+		HAL_Delay(1);
 		suma += licznik;
 		srednia = (float)suma/20;
 	}
 	time_us = 1000000*srednia/CLK_FREQ;
 	time = srednia/CLK_FREQ;
-	sprintf(wyslij, "time_us %f ", time_us);
-	HAL_UART_Transmit(&huart5, &wyslij, sizeof(wyslij), 100);
+	//sprintf(wyslij, "time_us %f ", time_us);
+	//HAL_UART_Transmit(&huart5, &wyslij, sizeof(wyslij), 100);
 
 	resistance = (time+0.000013)/0.00000010116;
-	sprintf(wyslij, "resistance %f ", resistance);
-	HAL_UART_Transmit(&huart5, &wyslij, sizeof(wyslij), 100);
+	//sprintf(wyslij, "resistance %f ", resistance);
+	//HAL_UART_Transmit(&huart5, &wyslij, sizeof(wyslij), 100);
 
 	delta = 0.0000152748 + 0.00000231 * (1-resistance/1000);
 	temperature = (0.0039083-sqrt(delta))/(0.000001155);
 
-	sprintf(wyslij, "delta %f ", sqrt(delta));
-	HAL_UART_Transmit(&huart5, &wyslij, sizeof(wyslij), 100);
+	//sprintf(wyslij, "delta %f ", sqrt(delta));
+	//HAL_UART_Transmit(&huart5, &wyslij, sizeof(wyslij), 100);
 
-	sprintf(wyslij, "temperature %f ", temperature);
-		HAL_UART_Transmit(&huart5, &wyslij, sizeof(wyslij), 100);
+	sprintf(wyslij, "temp PT1000 %f ", temperature);
+	HAL_UART_Transmit(&huart5, &wyslij, sizeof(wyslij), 100);
+}
+
+void GPIO_stage1_method2(void)
+{
+  GPIO_InitTypeDef GPIO_InitStruct = {0};
+
+  //pb1 output high
+  GPIO_InitStruct.Pin = GPIO_PIN_1;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+
+  HAL_GPIO_WritePin(GPIOB, GPIO_PIN_1, GPIO_PIN_SET);
+
+  //pb0 input high impedance
+  GPIO_InitStruct.Pin = GPIO_PIN_0;
+  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+
+  //pc5 input high impedance
+  GPIO_InitStruct.Pin = GPIO_PIN_5;
+  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
+}
+
+void GPIO_stage2_method2(void)
+{
+  GPIO_InitTypeDef GPIO_InitStruct = {0};
+
+  //pb1 input high impedance - interrupt
+  GPIO_InitStruct.Pin = GPIO_PIN_1;
+  GPIO_InitStruct.Mode = GPIO_MODE_IT_FALLING;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+  //uruchomienie przerwania
+  HAL_GPIO_EXTI_IRQHandler(GPIO_PIN_1);
+  HAL_NVIC_SetPriority(EXTI1_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(EXTI1_IRQn);
+
+  //PB0 output 0
+  GPIO_InitStruct.Pin = GPIO_PIN_0;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+
+  HAL_GPIO_WritePin(GPIOB, GPIO_PIN_0, GPIO_PIN_RESET);
+
+  //zerowanie timera
+  __HAL_TIM_SET_COUNTER(&htim2, 0);
+  //uruchomienie timera
+  HAL_TIM_Base_Start(&htim2);
+}
+
+void GPIO_stage3_method2(void)
+{
+  GPIO_InitTypeDef GPIO_InitStruct = {0};
+
+  //pb1 input high impedance - interrupt
+  GPIO_InitStruct.Pin = GPIO_PIN_1;
+  GPIO_InitStruct.Mode = GPIO_MODE_IT_FALLING;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+  //uruchomienie przerwania
+  HAL_GPIO_EXTI_IRQHandler(GPIO_PIN_1);
+  HAL_NVIC_SetPriority(EXTI1_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(EXTI1_IRQn);
+
+  //PC5 output 0
+  GPIO_InitStruct.Pin = GPIO_PIN_5;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
+
+  HAL_GPIO_WritePin(GPIOC, GPIO_PIN_0, GPIO_PIN_RESET);
+
+  //zerowanie timera
+  __HAL_TIM_SET_COUNTER(&htim2, 0);
+  //uruchomienie timera
+  HAL_TIM_Base_Start(&htim2);
+}
+
+void pt1000_temp_meas_method2(void){
+	float time_us1 = 0, time_us2 = 0, resistance = 0, suma1 = 0, suma2 = 0;
+
+	for(int i = 0 ; i < 20; i++){
+		GPIO_stage1_method2();
+		HAL_Delay(1);
+		GPIO_stage2_method2();
+		HAL_Delay(1);
+
+		time_us1 = 1000000*(float)licznik/CLK_FREQ;
+
+		suma1 += licznik;
+
+		//sprintf(wyslij, "time_us1 %f ", time_us1);
+		//HAL_UART_Transmit(&huart5, &wyslij, sizeof(wyslij), 100);
+		//HAL_Delay(100);
+
+		GPIO_stage1_method2();
+		HAL_Delay(1);
+		GPIO_stage3_method2();
+		HAL_Delay(1);
+
+		suma2 += licznik;
+
+
+		time_us2 = 1000000*(float)licznik/CLK_FREQ;
+
+		//sprintf(wyslij, "time_us2 %f ", time_us2);
+		//HAL_UART_Transmit(&huart5, &wyslij, sizeof(wyslij), 100);
+		//HAL_Delay(100);
+	}
+	srednia1 = (float)suma1/20;
+	srednia2 = (float)suma2/20;
+	resistance = srednia1/srednia2*1100;
+	sprintf(wyslij, "res2 %f ", resistance);
+	HAL_UART_Transmit(&huart5, &wyslij, sizeof(wyslij), 100);
+}
+
+void GPIO_stage1_method3(void)
+{
+  GPIO_InitTypeDef GPIO_InitStruct = {0};
+
+  //pb1 output high
+  GPIO_InitStruct.Pin = GPIO_PIN_1;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+
+  HAL_GPIO_WritePin(GPIOB, GPIO_PIN_1, GPIO_PIN_SET);
+
+  //pb0 input high impedance
+  GPIO_InitStruct.Pin = GPIO_PIN_0;
+  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+
+  //pc5 input high impedance
+  GPIO_InitStruct.Pin = GPIO_PIN_5;
+  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
+
+  //pc4 input high impedance
+  GPIO_InitStruct.Pin = GPIO_PIN_4;
+  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
+}
+
+void GPIO_stage2_method3(void)
+{
+  GPIO_InitTypeDef GPIO_InitStruct = {0};
+
+  //pb1 input high impedance - interrupt
+  GPIO_InitStruct.Pin = GPIO_PIN_1;
+  GPIO_InitStruct.Mode = GPIO_MODE_IT_FALLING;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+  //uruchomienie przerwania
+  HAL_GPIO_EXTI_IRQHandler(GPIO_PIN_1);
+  HAL_NVIC_SetPriority(EXTI1_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(EXTI1_IRQn);
+
+  //PB0 output 0
+  GPIO_InitStruct.Pin = GPIO_PIN_0;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+
+  HAL_GPIO_WritePin(GPIOB, GPIO_PIN_0, GPIO_PIN_RESET);
+
+  //zerowanie timera
+  __HAL_TIM_SET_COUNTER(&htim2, 0);
+  //uruchomienie timera
+  HAL_TIM_Base_Start(&htim2);
+}
+
+void GPIO_stage3_method3(void)
+{
+  GPIO_InitTypeDef GPIO_InitStruct = {0};
+
+  //pb1 input high impedance - interrupt
+  GPIO_InitStruct.Pin = GPIO_PIN_1;
+  GPIO_InitStruct.Mode = GPIO_MODE_IT_FALLING;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+  //uruchomienie przerwania
+  HAL_GPIO_EXTI_IRQHandler(GPIO_PIN_1);
+  HAL_NVIC_SetPriority(EXTI1_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(EXTI1_IRQn);
+
+  //PC5 output 0
+  GPIO_InitStruct.Pin = GPIO_PIN_5;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
+
+  HAL_GPIO_WritePin(GPIOC, GPIO_PIN_0, GPIO_PIN_RESET);
+
+  //zerowanie timera
+  __HAL_TIM_SET_COUNTER(&htim2, 0);
+  //uruchomienie timera
+  HAL_TIM_Base_Start(&htim2);
+}
+
+void GPIO_stage4_method3(void)
+{
+  GPIO_InitTypeDef GPIO_InitStruct = {0};
+
+  //pb1 input high impedance - interrupt
+  GPIO_InitStruct.Pin = GPIO_PIN_1;
+  GPIO_InitStruct.Mode = GPIO_MODE_IT_FALLING;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+  //uruchomienie przerwania
+  HAL_GPIO_EXTI_IRQHandler(GPIO_PIN_1);
+  HAL_NVIC_SetPriority(EXTI1_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(EXTI1_IRQn);
+
+  //PC4 output 0
+  GPIO_InitStruct.Pin = GPIO_PIN_4;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
+
+  HAL_GPIO_WritePin(GPIOC, GPIO_PIN_0, GPIO_PIN_RESET);
+
+  //zerowanie timera
+  __HAL_TIM_SET_COUNTER(&htim2, 0);
+  //uruchomienie timera
+  HAL_TIM_Base_Start(&htim2);
+}
+
+void pt1000_temp_meas_method3(void){
+	float time_us1 = 0, time_us2 = 0, time_us3 = 0, resistance = 0, suma1 = 0, suma2 = 0, suma3 = 0;
+	for(int i = 0 ; i < 20; i++){
+		GPIO_stage1_method3();
+		HAL_Delay(1);
+		GPIO_stage2_method3();
+		HAL_Delay(1);
+
+		suma1 += licznik;
+		time_us1 = 1000000*(float)licznik/CLK_FREQ;
+
+		GPIO_stage1_method3();
+		HAL_Delay(1);
+		GPIO_stage3_method3();
+		HAL_Delay(1);
+
+		suma2 += licznik;
+		time_us2 = 1000000*(float)licznik/CLK_FREQ;
+
+		GPIO_stage1_method3();
+		HAL_Delay(1);
+		GPIO_stage4_method3();
+		HAL_Delay(1);
+
+		suma3 += licznik;
+		time_us3 = 1000000*(float)licznik/CLK_FREQ;
+	}
+	srednia1 = (float)suma1/20;
+	srednia2 = (float)suma2/20;
+	srednia3 = (float)suma3/20;
+
+	//resistance = (srednia1 - srednia2)/(srednia3 - srednia2)*(1330 - 950) + 950;//two point calibration
+	resistance = (srednia1 - srednia2)/(srednia3 - srednia2)*1330;//three signal measurement version
+
+	sprintf(wyslij, "resistance %f ", resistance);
+	HAL_UART_Transmit(&huart5, &wyslij, sizeof(wyslij), 100);
+	HAL_Delay(100);
 }
 
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin){
@@ -506,7 +786,7 @@ int main(void)
   BMP388_init(&calib_data);
   HAL_Delay(2000);
 
-  pt1000_temp_meas();
+  pt1000_temp_meas_method1();
 
 
   /*
@@ -530,7 +810,7 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-	  pt1000_temp_meas();
+	  pt1000_temp_meas_method3();
 
 	  //HAL_GPIO_WritePin(GPIOA, GPIO_PIN_2, GPIO_PIN_RESET);
 	  //HAL_GPIO_WritePin(GPIOB, GPIO_PIN_0, GPIO_PIN_RESET);
@@ -547,8 +827,9 @@ int main(void)
 	  //sprintf(wysylanie, "%u ", licznik);
 	  //HAL_UART_Transmit(&huart5, &wysylanie, sizeof(wysylanie), 100);
 
-	  /*
+/*
 	  wynik = BMP388_measure_temp();
+	  wynik -= 4;
 
 	  sprintf(wysylanie, "temp%0.2f ", wynik);
 	  HAL_UART_Transmit(&huart5, &wysylanie, sizeof(wysylanie), 100);
