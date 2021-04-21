@@ -40,7 +40,6 @@
 
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
-#include "math.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
@@ -62,97 +61,98 @@
 #define BMP388_OSR 0x1C
 
 
+
 #define CLK_FREQ 8000000
 /* USER CODE END PTD */
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
 uint8_t T1_reg1 = 0;
-	uint8_t T1_reg2 = 0;
-	uint8_t T2_reg1 = 0;
-	uint8_t T2_reg2 = 0;
-	uint8_t T3_reg1 = 0;
-	uint8_t P1_reg1 = 0;
-	uint8_t P1_reg2 = 0;
-	uint8_t P2_reg1 = 0;
-	uint8_t P2_reg2 = 0;
-	uint8_t P3_reg1 = 0;
-	uint8_t P4_reg1 = 0;
-	uint8_t P5_reg1 = 0;
-	uint8_t P5_reg2 = 0;
-	uint8_t P6_reg1 = 0;
-	uint8_t P6_reg2 = 0;
-	uint8_t P7_reg1 = 0;
-	uint8_t P8_reg1 = 0;
-	uint8_t P9_reg1 = 0;
-	uint8_t P9_reg2 = 0;
-	uint8_t P10_reg1 = 0;
-	uint8_t P11_reg1 = 0;
-	int16_t NVM_PAR_T1 = 0;//27748;
-		int16_t NVM_PAR_T2 = 0;//18555;
-		int16_t NVM_PAR_T3 = 0;//246;
-		int16_t NVM_PAR_P1 = 0;
-		uint16_t NVM_PAR_P2 = 0;
-		int16_t NVM_PAR_P3 = 0;
-		int16_t NVM_PAR_P4 = 0;
-		int16_t NVM_PAR_P5 = 0;
-		int16_t NVM_PAR_P6 = 0;
-		int16_t NVM_PAR_P7 = 0;
-		int16_t NVM_PAR_P8 = 0;
-		int16_t NVM_PAR_P9 = 0;
-		int16_t NVM_PAR_P10 = 0;
-		int16_t NVM_PAR_P11 = 0;
+uint8_t T1_reg2 = 0;
+uint8_t T2_reg1 = 0;
+uint8_t T2_reg2 = 0;
+uint8_t T3_reg1 = 0;
+uint8_t P1_reg1 = 0;
+uint8_t P1_reg2 = 0;
+uint8_t P2_reg1 = 0;
+uint8_t P2_reg2 = 0;
+uint8_t P3_reg1 = 0;
+uint8_t P4_reg1 = 0;
+uint8_t P5_reg1 = 0;
+uint8_t P5_reg2 = 0;
+uint8_t P6_reg1 = 0;
+uint8_t P6_reg2 = 0;
+uint8_t P7_reg1 = 0;
+uint8_t P8_reg1 = 0;
+uint8_t P9_reg1 = 0;
+uint8_t P9_reg2 = 0;
+uint8_t P10_reg1 = 0;
+uint8_t P11_reg1 = 0;
+int16_t NVM_PAR_T1 = 0;//27748;
+int16_t NVM_PAR_T2 = 0;//18555;
+int16_t NVM_PAR_T3 = 0;//246;
+int16_t NVM_PAR_P1 = 0;
+uint16_t NVM_PAR_P2 = 0;
+int16_t NVM_PAR_P3 = 0;
+int16_t NVM_PAR_P4 = 0;
+int16_t NVM_PAR_P5 = 0;
+int16_t NVM_PAR_P6 = 0;
+int16_t NVM_PAR_P7 = 0;
+int16_t NVM_PAR_P8 = 0;
+int16_t NVM_PAR_P9 = 0;
+int16_t NVM_PAR_P10 = 0;
+int16_t NVM_PAR_P11 = 0;
 
-		uint8_t wyslij[20] = "OK";
+uint8_t wyslij[20] = "OK";
 
-		float par_t1 = 0;
-		  float par_t2 = 0;
-		  float par_t3 = 0;
+float par_t1 = 0;
+float par_t2 = 0;
+float par_t3 = 0;
 
-		  uint8_t temp0 = 0;
-		  uint8_t temp1 = 0;
-		  uint8_t temp2 = 0;
+uint8_t temp0 = 0;
+uint8_t temp1 = 0;
+uint8_t temp2 = 0;
 
-		  uint8_t press0 = 0;
-		  uint8_t press1 = 0;
-		  uint8_t press2 = 0;
-		  float temperature = 0;
-		  uint32_t pressure = 0;
-		  float wynik = 0;
-		  float partial_data1 = 0;
-		  float partial_data2 = 0;
-		  float partial_data3 = 0;
-		  float partial_data4 = 0;
-		  float comp_press = 0;
-		  float partial_out1 = 0;
-		  float partial_out2 = 0;
-		  float temp = 0;
-		  float pres = 0;
+uint8_t press0 = 0;
+uint8_t press1 = 0;
+uint8_t press2 = 0;
+float temperature = 0;
+uint32_t pressure = 0;
+float wynik = 0;
+float partial_data1 = 0;
+float partial_data2 = 0;
+float partial_data3 = 0;
+float partial_data4 = 0;
+float comp_press = 0;
+float partial_out1 = 0;
+float partial_out2 = 0;
+float temp = 0;
+float pres = 0;
 
-		  float par_p1 = 0;
-		  	    float par_p2 = 0;
-		  	    float par_p3 = 0;
-		  	    float par_p4 = 0;
-		  	    float par_p5 = 0;
-		  	    float par_p6 = 0;
-		  	    float par_p7 = 0;
-		  	    float par_p8 = 0;
-		  	    float par_p9 = 0;
-		  	    float par_p10 = 0;
-		  	    float par_p11 = 0;
-		 volatile 	  float srednia = 0, srednia1 = 0, srednia2 = 0, srednia3;
+float par_p1 = 0;
+float par_p2 = 0;
+float par_p3 = 0;
+float par_p4 = 0;
+float par_p5 = 0;
+float par_p6 = 0;
+float par_p7 = 0;
+float par_p8 = 0;
+float par_p9 = 0;
+float par_p10 = 0;
+float par_p11 = 0;
+volatile float srednia = 0, srednia1 = 0, srednia2 = 0, srednia3;
 volatile uint32_t licznik = 0;
-		  	  uint32_t data_xlsb;
-		  	        uint32_t data_lsb;
-		  	        uint32_t data_msb;
+uint32_t data_xlsb;
+uint32_t data_lsb;
+uint32_t data_msb;
 
-		  	      struct bmp388_calib_data{
-		  	        	uint8_t T1_reg1;
-		  	        	uint8_t T1_reg2;
-		  	        	uint8_t T2_reg1;
-		  	        	uint8_t T2_reg2;
-		  	        	uint8_t T3_reg1;
-		  	        };
+struct bmp388_calib_data{
+	uint8_t T1_reg1;
+	uint8_t T1_reg2;
+	uint8_t T2_reg1;
+	uint8_t T2_reg2;
+	uint8_t T3_reg1;
+};
 
 
 
@@ -164,6 +164,8 @@ volatile uint32_t licznik = 0;
 /* USER CODE END PM */
 
 /* Private variables ---------------------------------------------------------*/
+DAC_HandleTypeDef hdac1;
+
 I2C_HandleTypeDef hi2c1;
 
 TIM_HandleTypeDef htim2;
@@ -172,7 +174,6 @@ UART_HandleTypeDef huart5;
 UART_HandleTypeDef huart1;
 
 /* USER CODE BEGIN PV */
-
 
 
 /* USER CODE END PV */
@@ -184,7 +185,9 @@ static void MX_I2C1_Init(void);
 static void MX_USART1_UART_Init(void);
 static void MX_UART5_Init(void);
 static void MX_TIM2_Init(void);
+static void MX_DAC1_Init(void);
 /* USER CODE BEGIN PFP */
+
 void BMP388_read_temp_reg(struct bmp388_calib_data *calib){
 	HAL_I2C_Mem_Read(&hi2c1, BMP388_ADDRESS, 0x31, 1, &T1_reg1 , 1, 100);
 	HAL_I2C_Mem_Read(&hi2c1, BMP388_ADDRESS, 0x32, 1, &T1_reg2, 1, 100);
@@ -200,7 +203,9 @@ void BMP388_read_temp_reg(struct bmp388_calib_data *calib){
 
 void BMP388_read_press_reg(void){
 	HAL_I2C_Mem_Read(&hi2c1, BMP388_ADDRESS, 0x36, 1, &P1_reg1, 1, 100);
+	HAL_UART_Transmit(&huart5, &P1_reg1, sizeof(P1_reg1), 100);
 	HAL_I2C_Mem_Read(&hi2c1, BMP388_ADDRESS, 0x37, 1, &P1_reg2, 1, 100);
+	HAL_UART_Transmit(&huart5, &P1_reg2, sizeof(P1_reg2), 100);
 	HAL_I2C_Mem_Read(&hi2c1, BMP388_ADDRESS, 0x38, 1, &P2_reg1, 1, 100);
 	HAL_I2C_Mem_Read(&hi2c1, BMP388_ADDRESS, 0x39, 1, &P2_reg2, 1, 100);
 	HAL_I2C_Mem_Read(&hi2c1, BMP388_ADDRESS, 0x3A, 1, &P3_reg1, 1, 100);
@@ -726,6 +731,56 @@ void pt1000_temp_meas_method3(void){
 	HAL_Delay(100);
 }
 
+void HSL1101_hum_meas(void){
+
+	//zerowanie timera
+	__HAL_TIM_SET_COUNTER(&htim2, 0);
+	HAL_GPIO_WritePin(GPIOB, GPIO_PIN_10, GPIO_PIN_SET);
+	HAL_Delay(1000);
+	//uruchomienie timera
+	HAL_TIM_Base_Start(&htim2);
+
+	HAL_GPIO_WritePin(GPIOB, GPIO_PIN_10, GPIO_PIN_RESET);
+	HAL_Delay(1000);
+}
+/*
+void HAL_COMP_TriggerCallback(COMP_HandleTypeDef *hcomp){
+	HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_3);
+	HAL_TIM_Base_Stop(&htim2);
+	licznik = __HAL_TIM_GET_COUNTER(&htim2);
+	sprintf(wyslij, "przerwanie %u ", licznik);
+	HAL_UART_Transmit(&huart5, &wyslij, sizeof(wyslij), 100);
+}*/
+
+void VEML6070(void){
+	uint8_t data1 = 0x06, read = 0, MSB = 0, LSB = 0, UV_index = 0;
+	uint16_t light_data = 0;
+	HAL_I2C_Master_Receive(&hi2c1, 0x19, &read, sizeof(read),100);
+	HAL_I2C_Master_Transmit(&hi2c1, 0x70, &data1, sizeof(data1), 100);
+	HAL_I2C_Master_Receive(&hi2c1, 0x71, &LSB, sizeof(LSB),100);
+	HAL_I2C_Master_Receive(&hi2c1, 0x73, &MSB, sizeof(MSB),100);
+
+	light_data = MSB << 8 | LSB;
+
+	//sprintf(wyslij, "%u ", light_data);
+	//HAL_UART_Transmit(&huart5, &wyslij, sizeof(wyslij), 100);
+	HAL_Delay(1);
+
+	if(light_data >= 0 && light_data <=560){
+		UV_index = 0;//Low
+	}else if(light_data >= 561 && light_data <=1120){
+		UV_index = 1;//Moderate
+	}else if(light_data >= 1121 && light_data <=1494){
+		UV_index = 2;//High
+	}else if(light_data >= 1495 && light_data <=2054){
+		UV_index = 3;//Very High
+	}else if(light_data >= 2055){
+		UV_index = 4;//Extreme
+	}
+	//sprintf(wyslij, "%u ", UV_index);
+	//HAL_UART_Transmit(&huart5, &wyslij, sizeof(wyslij), 100);
+}
+
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin){
 	if(GPIO_Pin == GPIO_PIN_0){
 		HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_2);
@@ -777,30 +832,22 @@ int main(void)
   MX_USART1_UART_Init();
   MX_UART5_Init();
   MX_TIM2_Init();
+  MX_DAC1_Init();
   /* USER CODE BEGIN 2 */
-
-  uint8_t wysylanie[20] = "                    ";
-  uint32_t licznik = 0;
 
   struct bmp388_calib_data calib_data;
   BMP388_init(&calib_data);
   HAL_Delay(2000);
 
-  pt1000_temp_meas_method1();
+  HAL_DAC_Start(&hdac1, DAC_CHANNEL_1);
+  HAL_DAC_SetValue(&hdac1, DAC_CHANNEL_1, DAC_ALIGN_12B_R, 2749);
+
+  ///testy
+  uint8_t MSB = 0;
 
 
-  /*
-  HAL_TIM_Base_Start(&htim2);
-  HAL_TIM_Base_Stop(&htim2);
-  licznik = __HAL_TIM_GET_COUNTER(&htim2);
-  sprintf(wyslij, "licznik: %u ", licznik);
-  HAL_UART_Transmit(&huart5, &wyslij, sizeof(wyslij), 100);
-  __HAL_TIM_SET_COUNTER(&htim2, 0);
+  uint8_t wysylanie[20] = "              ";
 
-  licznik = __HAL_TIM_GET_COUNTER(&htim2);
-    sprintf(wyslij, "po zerowaniu: %u ", licznik);
-    HAL_UART_Transmit(&huart5, &wyslij, sizeof(wyslij), 100);
-  */
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -810,24 +857,16 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-	  pt1000_temp_meas_method3();
-
+	  //VEML6070();
+	  //pt1000_temp_meas_method3();
+	  //HSL1101_hum_meas();
 	  //HAL_GPIO_WritePin(GPIOA, GPIO_PIN_2, GPIO_PIN_RESET);
 	  //HAL_GPIO_WritePin(GPIOB, GPIO_PIN_0, GPIO_PIN_RESET);
 	  //HAL_Delay(1000);
-
 	  //HAL_GPIO_WritePin(GPIOA, GPIO_PIN_2, GPIO_PIN_SET);
 	  //HAL_GPIO_WritePin(GPIOB, GPIO_PIN_0, GPIO_PIN_SET);
-	  //HAL_Delay(1000);
+	  HAL_Delay(1000);
 
-
-
-	  //licznik = __HAL_TIM_GET_COUNTER(&htim2);
-
-	  //sprintf(wysylanie, "%u ", licznik);
-	  //HAL_UART_Transmit(&huart5, &wysylanie, sizeof(wysylanie), 100);
-
-/*
 	  wynik = BMP388_measure_temp();
 	  wynik -= 4;
 
@@ -838,7 +877,7 @@ int main(void)
 	  wynik /= 128;
 
 	  sprintf(wysylanie, "cisn%0.2f ", wynik);
-	  HAL_UART_Transmit(&huart5, &wysylanie, sizeof(wysylanie), 100);*/
+	  HAL_UART_Transmit(&huart5, &wysylanie, sizeof(wysylanie), 100);
 
   }
   /* USER CODE END 3 */
@@ -894,6 +933,47 @@ void SystemClock_Config(void)
 }
 
 /**
+  * @brief DAC1 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_DAC1_Init(void)
+{
+
+  /* USER CODE BEGIN DAC1_Init 0 */
+
+  /* USER CODE END DAC1_Init 0 */
+
+  DAC_ChannelConfTypeDef sConfig = {0};
+
+  /* USER CODE BEGIN DAC1_Init 1 */
+
+  /* USER CODE END DAC1_Init 1 */
+  /**DAC Initialization 
+  */
+  hdac1.Instance = DAC1;
+  if (HAL_DAC_Init(&hdac1) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /**DAC channel OUT1 config 
+  */
+  sConfig.DAC_SampleAndHold = DAC_SAMPLEANDHOLD_DISABLE;
+  sConfig.DAC_Trigger = DAC_TRIGGER_NONE;
+  sConfig.DAC_OutputBuffer = DAC_OUTPUTBUFFER_DISABLE;
+  sConfig.DAC_ConnectOnChipPeripheral = DAC_CHIPCONNECT_ENABLE;
+  sConfig.DAC_UserTrimming = DAC_TRIMMING_FACTORY;
+  if (HAL_DAC_ConfigChannel(&hdac1, &sConfig, DAC_CHANNEL_1) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN DAC1_Init 2 */
+
+  /* USER CODE END DAC1_Init 2 */
+
+}
+
+/**
   * @brief I2C1 Initialization Function
   * @param None
   * @retval None
@@ -909,7 +989,7 @@ static void MX_I2C1_Init(void)
 
   /* USER CODE END I2C1_Init 1 */
   hi2c1.Instance = I2C1;
-  hi2c1.Init.Timing = 0x00707CBB;
+  hi2c1.Init.Timing = 0x2000090E;
   hi2c1.Init.OwnAddress1 = 0;
   hi2c1.Init.AddressingMode = I2C_ADDRESSINGMODE_7BIT;
   hi2c1.Init.DualAddressMode = I2C_DUALADDRESS_DISABLE;
@@ -1074,11 +1154,10 @@ static void MX_GPIO_Init(void)
   HAL_GPIO_WritePin(GPIOA, LED3_Pin|LED2_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOC, T4_Pin|T3_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOC, GPIO_PIN_4|T3_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOB, T2_Pin|HUM_AC_Pin|HUM_PIN_Pin|STM_KEY_Pin 
-                          |BLE_ON_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOB, T2_Pin|HUM_PIN_Pin|STM_KEY_Pin|BLE_ON_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin : PA0 */
   GPIO_InitStruct.Pin = GPIO_PIN_0;
@@ -1093,36 +1172,28 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
-  /*Configure GPIO pin : PA4 */
-  GPIO_InitStruct.Pin = GPIO_PIN_4;
-  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
-  HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
-
-  /*Configure GPIO pins : T4_Pin T3_Pin */
-  GPIO_InitStruct.Pin = T4_Pin|T3_Pin;
+  /*Configure GPIO pins : PC4 T3_Pin */
+  GPIO_InitStruct.Pin = GPIO_PIN_4|T3_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : T2_Pin HUM_AC_Pin HUM_PIN_Pin STM_KEY_Pin 
-                           BLE_ON_Pin */
-  GPIO_InitStruct.Pin = T2_Pin|HUM_AC_Pin|HUM_PIN_Pin|STM_KEY_Pin 
-                          |BLE_ON_Pin;
+  /*Configure GPIO pins : T2_Pin HUM_PIN_Pin STM_KEY_Pin BLE_ON_Pin */
+  GPIO_InitStruct.Pin = T2_Pin|HUM_PIN_Pin|STM_KEY_Pin|BLE_ON_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
-  /*Configure GPIO pin : PB1 */
-  GPIO_InitStruct.Pin = GPIO_PIN_1;
+  /*Configure GPIO pin : T1_Pin */
+  GPIO_InitStruct.Pin = T1_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_IT_FALLING;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
-  HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+  HAL_GPIO_Init(T1_GPIO_Port, &GPIO_InitStruct);
 
-  /*Configure GPIO pin : PB11 */
-  GPIO_InitStruct.Pin = GPIO_PIN_11;
+  /*Configure GPIO pins : PB2 PB11 */
+  GPIO_InitStruct.Pin = GPIO_PIN_2|GPIO_PIN_11;
   GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);

@@ -1,20 +1,36 @@
-15:00:16 **** Incremental Build of configuration Debug for project pr ****
+14:05:18 **** Incremental Build of configuration Debug for project pr ****
 make all 
 Building file: ../Src/main.c
 Invoking: MCU GCC Compiler
 D:\Studia wszystko\Studia 5\sem 3\praca magisterska\kody STM\pr\Debug
 arm-none-eabi-gcc -mcpu=cortex-m4 -mthumb -mfloat-abi=hard -mfpu=fpv4-sp-d16 '-D__weak=__attribute__((weak))' '-D__packed=__attribute__((__packed__))' -DUSE_HAL_DRIVER -DSTM32L475xx -I"D:/Studia wszystko/Studia 5/sem 3/praca magisterska/kody STM/pr/Inc" -I"D:/Studia wszystko/Studia 5/sem 3/praca magisterska/kody STM/pr/Drivers/STM32L4xx_HAL_Driver/Inc" -I"D:/Studia wszystko/Studia 5/sem 3/praca magisterska/kody STM/pr/Drivers/STM32L4xx_HAL_Driver/Inc/Legacy" -I"D:/Studia wszystko/Studia 5/sem 3/praca magisterska/kody STM/pr/Drivers/CMSIS/Device/ST/STM32L4xx/Include" -I"D:/Studia wszystko/Studia 5/sem 3/praca magisterska/kody STM/pr/Drivers/CMSIS/Include"  -Og -g3 -Wall -fmessage-length=0 -ffunction-sections -c -fmessage-length=0 -MMD -MP -MF"Src/main.d" -MT"Src/main.o" -o "Src/main.o" "../Src/main.c"
+../Src/main.c: In function 'BMP388_calculate_temp_coef':
+../Src/main.c:252:29: warning: implicit declaration of function 'pow' [-Wimplicit-function-declaration]
+  par_t1 = (float)NVM_PAR_T1*pow(2,8);//7103488
+                             ^~~
+../Src/main.c:252:29: warning: incompatible implicit declaration of built-in function 'pow'
+../Src/main.c:252:29: note: include '<math.h>' or provide a declaration of 'pow'
+../Src/main.c: In function 'BMP388_calculate_pres_coef':
+../Src/main.c:258:30: warning: incompatible implicit declaration of built-in function 'pow'
+  par_p1 = ((float)NVM_PAR_P1-pow(2,14))/pow(2,20);
+                              ^~~
+../Src/main.c:258:30: note: include '<math.h>' or provide a declaration of 'pow'
 ../Src/main.c: In function 'pt1000_temp_meas_method1':
-../Src/main.c:445:2: warning: implicit declaration of function 'sprintf' [-Wimplicit-function-declaration]
+../Src/main.c:445:27: warning: implicit declaration of function 'sqrt' [-Wimplicit-function-declaration]
+  temperature = (0.0039083-sqrt(delta))/(0.000001155);
+                           ^~~~
+../Src/main.c:445:27: warning: incompatible implicit declaration of built-in function 'sqrt'
+../Src/main.c:445:27: note: include '<math.h>' or provide a declaration of 'sqrt'
+../Src/main.c:450:2: warning: implicit declaration of function 'sprintf' [-Wimplicit-function-declaration]
   sprintf(wyslij, "temp PT1000 %f ", temperature);
   ^~~~~~~
-../Src/main.c:445:2: warning: incompatible implicit declaration of built-in function 'sprintf'
-../Src/main.c:445:2: note: include '<stdio.h>' or provide a declaration of 'sprintf'
-../Src/main.c:445:10: warning: pointer targets in passing argument 1 of 'sprintf' differ in signedness [-Wpointer-sign]
+../Src/main.c:450:2: warning: incompatible implicit declaration of built-in function 'sprintf'
+../Src/main.c:450:2: note: include '<stdio.h>' or provide a declaration of 'sprintf'
+../Src/main.c:450:10: warning: pointer targets in passing argument 1 of 'sprintf' differ in signedness [-Wpointer-sign]
   sprintf(wyslij, "temp PT1000 %f ", temperature);
           ^~~~~~
-../Src/main.c:445:10: note: expected 'char *' but argument is of type 'uint8_t * {aka unsigned char *}'
-../Src/main.c:446:29: warning: passing argument 2 of 'HAL_UART_Transmit' from incompatible pointer type [-Wincompatible-pointer-types]
+../Src/main.c:450:10: note: expected 'char *' but argument is of type 'uint8_t * {aka unsigned char *}'
+../Src/main.c:451:29: warning: passing argument 2 of 'HAL_UART_Transmit' from incompatible pointer type [-Wincompatible-pointer-types]
   HAL_UART_Transmit(&huart5, &wyslij, sizeof(wyslij), 100);
                              ^
 In file included from D:/Studia wszystko/Studia 5/sem 3/praca magisterska/kody STM/pr/Inc/stm32l4xx_hal_conf.h:380:0,
@@ -24,19 +40,19 @@ In file included from D:/Studia wszystko/Studia 5/sem 3/praca magisterska/kody S
 D:/Studia wszystko/Studia 5/sem 3/praca magisterska/kody STM/pr/Drivers/STM32L4xx_HAL_Driver/Inc/stm32l4xx_hal_uart.h:1597:19: note: expected 'uint8_t * {aka unsigned char *}' but argument is of type 'uint8_t (*)[20] {aka unsigned char (*)[20]}'
  HAL_StatusTypeDef HAL_UART_Transmit(UART_HandleTypeDef *huart, uint8_t *pData, uint16_t Size, uint32_t Timeout);
                    ^~~~~~~~~~~~~~~~~
-../Src/main.c:420:8: warning: variable 'time_us' set but not used [-Wunused-but-set-variable]
+../Src/main.c:425:8: warning: variable 'time_us' set but not used [-Wunused-but-set-variable]
   float time_us = 0, time = 0;
         ^~~~~~~
 ../Src/main.c: In function 'pt1000_temp_meas_method2':
-../Src/main.c:567:2: warning: incompatible implicit declaration of built-in function 'sprintf'
+../Src/main.c:572:2: warning: incompatible implicit declaration of built-in function 'sprintf'
   sprintf(wyslij, "res2 %f ", resistance);
   ^~~~~~~
-../Src/main.c:567:2: note: include '<stdio.h>' or provide a declaration of 'sprintf'
-../Src/main.c:567:10: warning: pointer targets in passing argument 1 of 'sprintf' differ in signedness [-Wpointer-sign]
+../Src/main.c:572:2: note: include '<stdio.h>' or provide a declaration of 'sprintf'
+../Src/main.c:572:10: warning: pointer targets in passing argument 1 of 'sprintf' differ in signedness [-Wpointer-sign]
   sprintf(wyslij, "res2 %f ", resistance);
           ^~~~~~
-../Src/main.c:567:10: note: expected 'char *' but argument is of type 'uint8_t * {aka unsigned char *}'
-../Src/main.c:568:29: warning: passing argument 2 of 'HAL_UART_Transmit' from incompatible pointer type [-Wincompatible-pointer-types]
+../Src/main.c:572:10: note: expected 'char *' but argument is of type 'uint8_t * {aka unsigned char *}'
+../Src/main.c:573:29: warning: passing argument 2 of 'HAL_UART_Transmit' from incompatible pointer type [-Wincompatible-pointer-types]
   HAL_UART_Transmit(&huart5, &wyslij, sizeof(wyslij), 100);
                              ^
 In file included from D:/Studia wszystko/Studia 5/sem 3/praca magisterska/kody STM/pr/Inc/stm32l4xx_hal_conf.h:380:0,
@@ -46,22 +62,22 @@ In file included from D:/Studia wszystko/Studia 5/sem 3/praca magisterska/kody S
 D:/Studia wszystko/Studia 5/sem 3/praca magisterska/kody STM/pr/Drivers/STM32L4xx_HAL_Driver/Inc/stm32l4xx_hal_uart.h:1597:19: note: expected 'uint8_t * {aka unsigned char *}' but argument is of type 'uint8_t (*)[20] {aka unsigned char (*)[20]}'
  HAL_StatusTypeDef HAL_UART_Transmit(UART_HandleTypeDef *huart, uint8_t *pData, uint16_t Size, uint32_t Timeout);
                    ^~~~~~~~~~~~~~~~~
-../Src/main.c:534:22: warning: variable 'time_us2' set but not used [-Wunused-but-set-variable]
+../Src/main.c:539:22: warning: variable 'time_us2' set but not used [-Wunused-but-set-variable]
   float time_us1 = 0, time_us2 = 0, resistance = 0, suma1 = 0, suma2 = 0;
                       ^~~~~~~~
-../Src/main.c:534:8: warning: variable 'time_us1' set but not used [-Wunused-but-set-variable]
+../Src/main.c:539:8: warning: variable 'time_us1' set but not used [-Wunused-but-set-variable]
   float time_us1 = 0, time_us2 = 0, resistance = 0, suma1 = 0, suma2 = 0;
         ^~~~~~~~
 ../Src/main.c: In function 'pt1000_temp_meas_method3':
-../Src/main.c:724:2: warning: incompatible implicit declaration of built-in function 'sprintf'
+../Src/main.c:729:2: warning: incompatible implicit declaration of built-in function 'sprintf'
   sprintf(wyslij, "resistance %f ", resistance);
   ^~~~~~~
-../Src/main.c:724:2: note: include '<stdio.h>' or provide a declaration of 'sprintf'
-../Src/main.c:724:10: warning: pointer targets in passing argument 1 of 'sprintf' differ in signedness [-Wpointer-sign]
+../Src/main.c:729:2: note: include '<stdio.h>' or provide a declaration of 'sprintf'
+../Src/main.c:729:10: warning: pointer targets in passing argument 1 of 'sprintf' differ in signedness [-Wpointer-sign]
   sprintf(wyslij, "resistance %f ", resistance);
           ^~~~~~
-../Src/main.c:724:10: note: expected 'char *' but argument is of type 'uint8_t * {aka unsigned char *}'
-../Src/main.c:725:29: warning: passing argument 2 of 'HAL_UART_Transmit' from incompatible pointer type [-Wincompatible-pointer-types]
+../Src/main.c:729:10: note: expected 'char *' but argument is of type 'uint8_t * {aka unsigned char *}'
+../Src/main.c:730:29: warning: passing argument 2 of 'HAL_UART_Transmit' from incompatible pointer type [-Wincompatible-pointer-types]
   HAL_UART_Transmit(&huart5, &wyslij, sizeof(wyslij), 100);
                              ^
 In file included from D:/Studia wszystko/Studia 5/sem 3/praca magisterska/kody STM/pr/Inc/stm32l4xx_hal_conf.h:380:0,
@@ -71,34 +87,67 @@ In file included from D:/Studia wszystko/Studia 5/sem 3/praca magisterska/kody S
 D:/Studia wszystko/Studia 5/sem 3/praca magisterska/kody STM/pr/Drivers/STM32L4xx_HAL_Driver/Inc/stm32l4xx_hal_uart.h:1597:19: note: expected 'uint8_t * {aka unsigned char *}' but argument is of type 'uint8_t (*)[20] {aka unsigned char (*)[20]}'
  HAL_StatusTypeDef HAL_UART_Transmit(UART_HandleTypeDef *huart, uint8_t *pData, uint16_t Size, uint32_t Timeout);
                    ^~~~~~~~~~~~~~~~~
-../Src/main.c:691:36: warning: variable 'time_us3' set but not used [-Wunused-but-set-variable]
+../Src/main.c:696:36: warning: variable 'time_us3' set but not used [-Wunused-but-set-variable]
   float time_us1 = 0, time_us2 = 0, time_us3 = 0, resistance = 0, suma1 = 0, suma2 = 0, suma3 = 0;
                                     ^~~~~~~~
-../Src/main.c:691:22: warning: variable 'time_us2' set but not used [-Wunused-but-set-variable]
+../Src/main.c:696:22: warning: variable 'time_us2' set but not used [-Wunused-but-set-variable]
   float time_us1 = 0, time_us2 = 0, time_us3 = 0, resistance = 0, suma1 = 0, suma2 = 0, suma3 = 0;
                       ^~~~~~~~
-../Src/main.c:691:8: warning: variable 'time_us1' set but not used [-Wunused-but-set-variable]
+../Src/main.c:696:8: warning: variable 'time_us1' set but not used [-Wunused-but-set-variable]
   float time_us1 = 0, time_us2 = 0, time_us3 = 0, resistance = 0, suma1 = 0, suma2 = 0, suma3 = 0;
         ^~~~~~~~
+../Src/main.c: In function 'VEML6070':
+../Src/main.c:756:52: warning: variable 'UV_index' set but not used [-Wunused-but-set-variable]
+  uint8_t data1 = 0x06, read = 0, MSB = 0, LSB = 0, UV_index = 0;
+                                                    ^~~~~~~~
 ../Src/main.c: In function 'main':
-../Src/main.c:783:12: warning: unused variable 'licznik' [-Wunused-variable]
-   uint32_t licznik = 0;
-            ^~~~~~~
-../Src/main.c:782:11: warning: unused variable 'wysylanie' [-Wunused-variable]
-   uint8_t wysylanie[20] = "                    ";
-           ^~~~~~~~~
+../Src/main.c:873:4: warning: incompatible implicit declaration of built-in function 'sprintf'
+    sprintf(wysylanie, "temp%0.2f ", wynik);
+    ^~~~~~~
+../Src/main.c:873:4: note: include '<stdio.h>' or provide a declaration of 'sprintf'
+../Src/main.c:873:12: warning: pointer targets in passing argument 1 of 'sprintf' differ in signedness [-Wpointer-sign]
+    sprintf(wysylanie, "temp%0.2f ", wynik);
+            ^~~~~~~~~
+../Src/main.c:873:12: note: expected 'char *' but argument is of type 'uint8_t * {aka unsigned char *}'
+../Src/main.c:874:31: warning: passing argument 2 of 'HAL_UART_Transmit' from incompatible pointer type [-Wincompatible-pointer-types]
+    HAL_UART_Transmit(&huart5, &wysylanie, sizeof(wysylanie), 100);
+                               ^
+In file included from D:/Studia wszystko/Studia 5/sem 3/praca magisterska/kody STM/pr/Inc/stm32l4xx_hal_conf.h:380:0,
+                 from D:/Studia wszystko/Studia 5/sem 3/praca magisterska/kody STM/pr/Drivers/STM32L4xx_HAL_Driver/Inc/stm32l4xx_hal.h:46,
+                 from D:/Studia wszystko/Studia 5/sem 3/praca magisterska/kody STM/pr/Inc/main.h:51,
+                 from ../Src/main.c:42:
+D:/Studia wszystko/Studia 5/sem 3/praca magisterska/kody STM/pr/Drivers/STM32L4xx_HAL_Driver/Inc/stm32l4xx_hal_uart.h:1597:19: note: expected 'uint8_t * {aka unsigned char *}' but argument is of type 'uint8_t (*)[20] {aka unsigned char (*)[20]}'
+ HAL_StatusTypeDef HAL_UART_Transmit(UART_HandleTypeDef *huart, uint8_t *pData, uint16_t Size, uint32_t Timeout);
+                   ^~~~~~~~~~~~~~~~~
+../Src/main.c:879:12: warning: pointer targets in passing argument 1 of 'sprintf' differ in signedness [-Wpointer-sign]
+    sprintf(wysylanie, "cisn%0.2f ", wynik);
+            ^~~~~~~~~
+../Src/main.c:879:12: note: expected 'char *' but argument is of type 'uint8_t * {aka unsigned char *}'
+../Src/main.c:880:31: warning: passing argument 2 of 'HAL_UART_Transmit' from incompatible pointer type [-Wincompatible-pointer-types]
+    HAL_UART_Transmit(&huart5, &wysylanie, sizeof(wysylanie), 100);
+                               ^
+In file included from D:/Studia wszystko/Studia 5/sem 3/praca magisterska/kody STM/pr/Inc/stm32l4xx_hal_conf.h:380:0,
+                 from D:/Studia wszystko/Studia 5/sem 3/praca magisterska/kody STM/pr/Drivers/STM32L4xx_HAL_Driver/Inc/stm32l4xx_hal.h:46,
+                 from D:/Studia wszystko/Studia 5/sem 3/praca magisterska/kody STM/pr/Inc/main.h:51,
+                 from ../Src/main.c:42:
+D:/Studia wszystko/Studia 5/sem 3/praca magisterska/kody STM/pr/Drivers/STM32L4xx_HAL_Driver/Inc/stm32l4xx_hal_uart.h:1597:19: note: expected 'uint8_t * {aka unsigned char *}' but argument is of type 'uint8_t (*)[20] {aka unsigned char (*)[20]}'
+ HAL_StatusTypeDef HAL_UART_Transmit(UART_HandleTypeDef *huart, uint8_t *pData, uint16_t Size, uint32_t Timeout);
+                   ^~~~~~~~~~~~~~~~~
+../Src/main.c:846:11: warning: unused variable 'MSB' [-Wunused-variable]
+   uint8_t MSB = 0;
+           ^~~
 ../Src/main.c: In function 'pt1000_temp_meas_method1':
-../Src/main.c:445:33: warning: ' ' directive writing 1 byte into a region of size 0 [-Wformat-overflow=]
+../Src/main.c:450:33: warning: ' ' directive writing 1 byte into a region of size 0 [-Wformat-overflow=]
   sprintf(wyslij, "temp PT1000 %f ", temperature);
                                  ^
-../Src/main.c:445:2: note: 'sprintf' output between 22 and 331 bytes into a destination of size 20
+../Src/main.c:450:2: note: 'sprintf' output between 22 and 331 bytes into a destination of size 20
   sprintf(wyslij, "temp PT1000 %f ", temperature);
   ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ../Src/main.c: In function 'pt1000_temp_meas_method3':
-../Src/main.c:724:33: warning: 'sprintf' writing a terminating nul past the end of the destination [-Wformat-overflow=]
+../Src/main.c:729:33: warning: 'sprintf' writing a terminating nul past the end of the destination [-Wformat-overflow=]
   sprintf(wyslij, "resistance %f ", resistance);
                                  ^
-../Src/main.c:724:2: note: 'sprintf' output between 21 and 330 bytes into a destination of size 20
+../Src/main.c:729:2: note: 'sprintf' output between 21 and 330 bytes into a destination of size 20
   sprintf(wyslij, "resistance %f ", resistance);
   ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Finished building: ../Src/main.c
@@ -113,8 +162,8 @@ Generating hex and Printing size information:
 arm-none-eabi-objcopy -O ihex "pr.elf" "pr.hex"
 arm-none-eabi-size "pr.elf"
    text	   data	    bss	    dec	    hex	filename
-  26984	    512	   2160	  29656	   73d8	pr.elf
+  26504	    488	   2184	  29176	   71f8	pr.elf
  
 
-15:00:21 Build Finished (took 4s.949ms)
+14:05:25 Build Finished (took 7s.101ms)
 

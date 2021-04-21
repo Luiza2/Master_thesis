@@ -82,14 +82,13 @@ void Error_Handler(void);
 #define LED3_GPIO_Port GPIOA
 #define LED2_Pin GPIO_PIN_3
 #define LED2_GPIO_Port GPIOA
-#define T4_Pin GPIO_PIN_4
-#define T4_GPIO_Port GPIOC
 #define T3_Pin GPIO_PIN_5
 #define T3_GPIO_Port GPIOC
 #define T2_Pin GPIO_PIN_0
 #define T2_GPIO_Port GPIOB
-#define HUM_AC_Pin GPIO_PIN_2
-#define HUM_AC_GPIO_Port GPIOB
+#define T1_Pin GPIO_PIN_1
+#define T1_GPIO_Port GPIOB
+#define T1_EXTI_IRQn EXTI1_IRQn
 #define HUM_PIN_Pin GPIO_PIN_10
 #define HUM_PIN_GPIO_Port GPIOB
 #define STM_KEY_Pin GPIO_PIN_13
