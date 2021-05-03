@@ -8,6 +8,7 @@
 		<item value="true" key="wrap"/>
 		<item value="false" key="wholeword"/>
 		<list key="findhistory">
+			<item value="regi"/>
 			<item value="master_receive"/>
 			<item value="receive"/>
 			<item value="result"/>
@@ -15,7 +16,6 @@
 			<item value="write"/>
 			<item value="BME280_64BIT_ENABLE"/>
 			<item value="float"/>
-			<item value="dig_"/>
 		</list>
 		<list key="replacehistory">
 			<item value="BMP388"/>

@@ -62,7 +62,7 @@
 
 
 
-#define CLK_FREQ 8000000
+#define CLK_FREQ 80000000
 /* USER CODE END PTD */
 
 /* Private define ------------------------------------------------------------*/
@@ -419,27 +419,22 @@ void GPIO_stage2_method1(void)
 }
 
 void pt1000_temp_meas_method1(void){
-	uint32_t suma = 0;
 	float resistance = 0;
-	srednia = 0;
-	float time_us = 0, time = 0;
+	float  time = 0;
 	float delta = 0;
-	for(int i = 0 ; i < 20; i++){
-		GPIO_stage1_method1();//T1 output high, T2 input high impedance
-		HAL_Delay(1);
-		GPIO_stage2_method1();
-		HAL_Delay(1);
-		suma += licznik;
-		srednia = (float)suma/20;
-	}
-	time_us = 1000000*srednia/CLK_FREQ;
-	time = srednia/CLK_FREQ;
-	//sprintf(wyslij, "time_us %f ", time_us);
+
+	GPIO_stage1_method1();//T1 output high, T2 input high impedance
+	HAL_Delay(10);
+	GPIO_stage2_method1();
+	HAL_Delay(10);
+
+	time = (float)licznik/CLK_FREQ;
+	//sprintf(wyslij, "time_us %0.10f ", time);
 	//HAL_UART_Transmit(&huart5, &wyslij, sizeof(wyslij), 100);
 
-	resistance = (time+0.000013)/0.00000010116;
-	//sprintf(wyslij, "resistance %f ", resistance);
-	//HAL_UART_Transmit(&huart5, &wyslij, sizeof(wyslij), 100);
+	resistance = (time)/0.00000009157261323;
+	sprintf(wyslij, "%f ", resistance);
+	HAL_UART_Transmit(&huart5, &wyslij, 10, 100);
 
 	delta = 0.0000152748 + 0.00000231 * (1-resistance/1000);
 	temperature = (0.0039083-sqrt(delta))/(0.000001155);
@@ -447,8 +442,8 @@ void pt1000_temp_meas_method1(void){
 	//sprintf(wyslij, "delta %f ", sqrt(delta));
 	//HAL_UART_Transmit(&huart5, &wyslij, sizeof(wyslij), 100);
 
-	sprintf(wyslij, "temp PT1000 %f ", temperature);
-	HAL_UART_Transmit(&huart5, &wyslij, sizeof(wyslij), 100);
+	//sprintf(wyslij, "%f", temperature);
+	//HAL_UART_Transmit(&huart5, &wyslij, 9, 100);
 }
 
 void GPIO_stage1_method2(void)
@@ -537,40 +532,31 @@ void GPIO_stage3_method2(void)
 
 void pt1000_temp_meas_method2(void){
 	float time_us1 = 0, time_us2 = 0, resistance = 0, suma1 = 0, suma2 = 0;
+	float licznik1 = 0, licznik2 = 0;
 
-	for(int i = 0 ; i < 20; i++){
-		GPIO_stage1_method2();
-		HAL_Delay(1);
-		GPIO_stage2_method2();
-		HAL_Delay(1);
+	GPIO_stage1_method2();
+	HAL_Delay(10);
+	GPIO_stage2_method2();
+	HAL_Delay(10);
+	licznik1 = (float)licznik;
 
-		time_us1 = 1000000*(float)licznik/CLK_FREQ;
+	//sprintf(wyslij, "time_us1 %f ", time_us1);
+	//HAL_UART_Transmit(&huart5, &wyslij, sizeof(wyslij), 100);
+	//HAL_Delay(100);
 
-		suma1 += licznik;
+	GPIO_stage1_method2();
+	HAL_Delay(10);
+	GPIO_stage3_method2();
+	HAL_Delay(10);
+	licznik2= (float)licznik;
 
-		//sprintf(wyslij, "time_us1 %f ", time_us1);
-		//HAL_UART_Transmit(&huart5, &wyslij, sizeof(wyslij), 100);
-		//HAL_Delay(100);
+	//sprintf(wyslij, "time_us2 %f ", time_us2);
+	//HAL_UART_Transmit(&huart5, &wyslij, sizeof(wyslij), 100);
+	//HAL_Delay(100);
 
-		GPIO_stage1_method2();
-		HAL_Delay(1);
-		GPIO_stage3_method2();
-		HAL_Delay(1);
-
-		suma2 += licznik;
-
-
-		time_us2 = 1000000*(float)licznik/CLK_FREQ;
-
-		//sprintf(wyslij, "time_us2 %f ", time_us2);
-		//HAL_UART_Transmit(&huart5, &wyslij, sizeof(wyslij), 100);
-		//HAL_Delay(100);
-	}
-	srednia1 = (float)suma1/20;
-	srednia2 = (float)suma2/20;
-	resistance = srednia1/srednia2*1100;
-	sprintf(wyslij, "res2 %f ", resistance);
-	HAL_UART_Transmit(&huart5, &wyslij, sizeof(wyslij), 100);
+	resistance = licznik1/licznik2*1100.1;
+	sprintf(wyslij, "%f ", resistance);
+	HAL_UART_Transmit(&huart5, &wyslij, 10, 100);
 }
 
 void GPIO_stage1_method3(void)
@@ -694,41 +680,33 @@ void GPIO_stage4_method3(void)
 
 void pt1000_temp_meas_method3(void){
 	float time_us1 = 0, time_us2 = 0, time_us3 = 0, resistance = 0, suma1 = 0, suma2 = 0, suma3 = 0;
-	for(int i = 0 ; i < 20; i++){
-		GPIO_stage1_method3();
-		HAL_Delay(1);
-		GPIO_stage2_method3();
-		HAL_Delay(1);
+	float licznik1=0, licznik2=0, licznik3=0;
 
-		suma1 += licznik;
-		time_us1 = 1000000*(float)licznik/CLK_FREQ;
+	GPIO_stage1_method3();
+	HAL_Delay(2);
+	GPIO_stage2_method3();
+	HAL_Delay(2);
+	licznik1 = (float)licznik;
 
-		GPIO_stage1_method3();
-		HAL_Delay(1);
-		GPIO_stage3_method3();
-		HAL_Delay(1);
+	GPIO_stage1_method3();
+	HAL_Delay(2);
+	GPIO_stage3_method3();
+	HAL_Delay(2);
 
-		suma2 += licznik;
-		time_us2 = 1000000*(float)licznik/CLK_FREQ;
+	licznik2 = (float)licznik;
 
-		GPIO_stage1_method3();
-		HAL_Delay(1);
-		GPIO_stage4_method3();
-		HAL_Delay(1);
+	GPIO_stage1_method3();
+	HAL_Delay(2);
+	GPIO_stage4_method3();
+	HAL_Delay(2);
 
-		suma3 += licznik;
-		time_us3 = 1000000*(float)licznik/CLK_FREQ;
-	}
-	srednia1 = (float)suma1/20;
-	srednia2 = (float)suma2/20;
-	srednia3 = (float)suma3/20;
+	licznik3 = (float)licznik;
 
-	//resistance = (srednia1 - srednia2)/(srednia3 - srednia2)*(1330 - 950) + 950;//two point calibration
-	resistance = (srednia1 - srednia2)/(srednia3 - srednia2)*1330;//three signal measurement version
+	//resistance = (licznik1 - licznik2)/(licznik3 - licznik2)*(1330.07 - 942.25) + 942.25;//two point calibration
+	resistance = (licznik1 - licznik2)/(licznik3 - licznik2)*1330.07;//three signal measurement version
 
-	sprintf(wyslij, "resistance %f ", resistance);
-	HAL_UART_Transmit(&huart5, &wyslij, sizeof(wyslij), 100);
-	HAL_Delay(100);
+	sprintf(wyslij, "%f ", resistance);
+	HAL_UART_Transmit(&huart5, &wyslij, 10, 100);
 }
 
 void HSL1101_hum_meas(void){
@@ -764,7 +742,7 @@ void VEML6070(void){
 
 	//sprintf(wyslij, "%u ", light_data);
 	//HAL_UART_Transmit(&huart5, &wyslij, sizeof(wyslij), 100);
-	HAL_Delay(1);
+	//HAL_Delay(1);
 
 	if(light_data >= 0 && light_data <=560){
 		UV_index = 0;//Low
@@ -777,8 +755,20 @@ void VEML6070(void){
 	}else if(light_data >= 2055){
 		UV_index = 4;//Extreme
 	}
-	//sprintf(wyslij, "%u ", UV_index);
-	//HAL_UART_Transmit(&huart5, &wyslij, sizeof(wyslij), 100);
+	sprintf(wyslij, "index UV: %u ", UV_index);
+	HAL_UART_Transmit(&huart5, &wyslij, sizeof(wyslij), 100);
+}
+
+void BH1750(void){
+	uint8_t data1 = 0x10, data2 = 0x42, value[2] = {0, 0};
+	uint16_t light_value = 0;
+	HAL_I2C_Master_Transmit(&hi2c1, 0xB8, &data1, sizeof(data1), 100);
+	HAL_I2C_Master_Receive(&hi2c1, 0xB9, value, 2, 100);
+
+	light_value = value[0] << 8 | value[1];
+
+	sprintf(wyslij, "%u[lx]", light_value);
+	HAL_UART_Transmit(&huart5, &wyslij, sizeof(wyslij), 100);
 }
 
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin){
@@ -791,8 +781,80 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin){
 
 	    //sprintf(wyslij, "przerwanie %u ", licznik);
 	    //HAL_UART_Transmit(&huart5, &wyslij, sizeof(wyslij), 100);
+	}else if(GPIO_Pin == GPIO_PIN_2)
+	{
+	    HAL_TIM_Base_Stop(&htim2);
+	    licznik = __HAL_TIM_GET_COUNTER(&htim2);
+
+	    sprintf(wyslij, "przerwanie %u ", licznik);
+	    HAL_UART_Transmit(&huart5, &wyslij, sizeof(wyslij), 100);
 	}
 }
+
+void GPIO_stage1_humidity(void)
+{
+  GPIO_InitTypeDef GPIO_InitStruct = {0};
+
+  //pb2 output high
+  GPIO_InitStruct.Pin = GPIO_PIN_2;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+
+  HAL_GPIO_WritePin(GPIOB, GPIO_PIN_2, GPIO_PIN_SET);
+
+  //pb10 input high impedance
+  GPIO_InitStruct.Pin = GPIO_PIN_10;
+  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+}
+
+void GPIO_stage2_humidity(void)
+{
+  GPIO_InitTypeDef GPIO_InitStruct = {0};
+
+  //pb2 input high impedance - interrupt
+  GPIO_InitStruct.Pin = GPIO_PIN_2;
+  GPIO_InitStruct.Mode = GPIO_MODE_IT_FALLING;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+  //uruchomienie przerwania
+  HAL_GPIO_EXTI_IRQHandler(GPIO_PIN_2);
+  HAL_NVIC_SetPriority(EXTI1_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(EXTI1_IRQn);
+
+  //PB10 output 0
+  GPIO_InitStruct.Pin = GPIO_PIN_10;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+
+  HAL_GPIO_WritePin(GPIOB, GPIO_PIN_10, GPIO_PIN_RESET);
+
+  //zerowanie timera
+  __HAL_TIM_SET_COUNTER(&htim2, 0);
+  //uruchomienie timera
+  HAL_TIM_Base_Start(&htim2);
+}
+
+void measure_humidity(void){
+	GPIO_stage1_humidity();
+	HAL_Delay(1000);
+	GPIO_stage2_humidity();
+	HAL_Delay(1000);
+
+	//sprintf(wyslij, "resistance %f ", resistance);
+	//HAL_UART_Transmit(&huart5, &wyslij, sizeof(wyslij), 100);
+}
+/*
+void HAL_COMP_TriggerCallback(COMP_HandleTypeDef *hcomp) {
+
+
+	HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_3);
+}*/
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -836,18 +898,32 @@ int main(void)
   /* USER CODE BEGIN 2 */
 
   struct bmp388_calib_data calib_data;
-  BMP388_init(&calib_data);
+  //BMP388_init(&calib_data);
   HAL_Delay(2000);
 
   HAL_DAC_Start(&hdac1, DAC_CHANNEL_1);
-  HAL_DAC_SetValue(&hdac1, DAC_CHANNEL_1, DAC_ALIGN_12B_R, 2749);
+  HAL_DAC_SetValue(&hdac1, DAC_CHANNEL_1, DAC_ALIGN_12B_R, 2749);//1,91V   2,85*2749/4096
 
   ///testy
   uint8_t MSB = 0;
 
 
   uint8_t wysylanie[20] = "              ";
+  //HAL_COMP_Start_IT(&hcomp1);
 
+
+  sprintf(wyslij, "Metoda_1=[", licznik);
+  HAL_UART_Transmit(&huart5, &wyslij, 10, 100);
+  for(int i = 0 ; i < 1024; i++)
+  {
+	  pt1000_temp_meas_method1();
+	  if(i == 1023)
+		  continue;
+	  sprintf(wyslij, ";\n", licznik);
+	  HAL_UART_Transmit(&huart5, &wyslij, 2, 100);
+  }
+  sprintf(wyslij, "];", licznik);
+  HAL_UART_Transmit(&huart5, &wyslij, 2, 100);
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -857,15 +933,17 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
+	  //measure_humidity();
 	  //VEML6070();
-	  //pt1000_temp_meas_method3();
+	  //pt1000_temp_meas_method1();
 	  //HSL1101_hum_meas();
 	  //HAL_GPIO_WritePin(GPIOA, GPIO_PIN_2, GPIO_PIN_RESET);
 	  //HAL_GPIO_WritePin(GPIOB, GPIO_PIN_0, GPIO_PIN_RESET);
 	  //HAL_Delay(1000);
 	  //HAL_GPIO_WritePin(GPIOA, GPIO_PIN_2, GPIO_PIN_SET);
 	  //HAL_GPIO_WritePin(GPIOB, GPIO_PIN_0, GPIO_PIN_SET);
-	  HAL_Delay(1000);
+	  //BH1750();
+	  /*HAL_Delay(1000);
 
 	  wynik = BMP388_measure_temp();
 	  wynik -= 4;
@@ -878,7 +956,7 @@ int main(void)
 
 	  sprintf(wysylanie, "cisn%0.2f ", wynik);
 	  HAL_UART_Transmit(&huart5, &wysylanie, sizeof(wysylanie), 100);
-
+*/
   }
   /* USER CODE END 3 */
 }
@@ -895,9 +973,16 @@ void SystemClock_Config(void)
 
   /**Initializes the CPU, AHB and APB busses clocks 
   */
-  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSE;
-  RCC_OscInitStruct.HSEState = RCC_HSE_ON;
-  RCC_OscInitStruct.PLL.PLLState = RCC_PLL_NONE;
+  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI;
+  RCC_OscInitStruct.HSIState = RCC_HSI_ON;
+  RCC_OscInitStruct.HSICalibrationValue = RCC_HSICALIBRATION_DEFAULT;
+  RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
+  RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSI;
+  RCC_OscInitStruct.PLL.PLLM = 1;
+  RCC_OscInitStruct.PLL.PLLN = 10;
+  RCC_OscInitStruct.PLL.PLLP = RCC_PLLP_DIV7;
+  RCC_OscInitStruct.PLL.PLLQ = RCC_PLLQ_DIV2;
+  RCC_OscInitStruct.PLL.PLLR = RCC_PLLR_DIV2;
   if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
   {
     Error_Handler();
@@ -906,12 +991,12 @@ void SystemClock_Config(void)
   */
   RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK|RCC_CLOCKTYPE_SYSCLK
                               |RCC_CLOCKTYPE_PCLK1|RCC_CLOCKTYPE_PCLK2;
-  RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_HSE;
+  RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_PLLCLK;
   RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
   RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV1;
   RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV1;
 
-  if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_0) != HAL_OK)
+  if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_4) != HAL_OK)
   {
     Error_Handler();
   }
@@ -960,8 +1045,8 @@ static void MX_DAC1_Init(void)
   */
   sConfig.DAC_SampleAndHold = DAC_SAMPLEANDHOLD_DISABLE;
   sConfig.DAC_Trigger = DAC_TRIGGER_NONE;
-  sConfig.DAC_OutputBuffer = DAC_OUTPUTBUFFER_DISABLE;
-  sConfig.DAC_ConnectOnChipPeripheral = DAC_CHIPCONNECT_ENABLE;
+  sConfig.DAC_OutputBuffer = DAC_OUTPUTBUFFER_ENABLE;
+  sConfig.DAC_ConnectOnChipPeripheral = DAC_CHIPCONNECT_DISABLE;
   sConfig.DAC_UserTrimming = DAC_TRIMMING_FACTORY;
   if (HAL_DAC_ConfigChannel(&hdac1, &sConfig, DAC_CHANNEL_1) != HAL_OK)
   {
@@ -989,7 +1074,7 @@ static void MX_I2C1_Init(void)
 
   /* USER CODE END I2C1_Init 1 */
   hi2c1.Instance = I2C1;
-  hi2c1.Init.Timing = 0x2000090E;
+  hi2c1.Init.Timing = 0x10909CEC;
   hi2c1.Init.OwnAddress1 = 0;
   hi2c1.Init.AddressingMode = I2C_ADDRESSINGMODE_7BIT;
   hi2c1.Init.DualAddressMode = I2C_DUALADDRESS_DISABLE;
@@ -1154,7 +1239,7 @@ static void MX_GPIO_Init(void)
   HAL_GPIO_WritePin(GPIOA, LED3_Pin|LED2_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOC, GPIO_PIN_4|T3_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOC, T4_Pin|T3_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOB, T2_Pin|HUM_PIN_Pin|STM_KEY_Pin|BLE_ON_Pin, GPIO_PIN_RESET);
@@ -1172,8 +1257,8 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : PC4 T3_Pin */
-  GPIO_InitStruct.Pin = GPIO_PIN_4|T3_Pin;
+  /*Configure GPIO pins : T4_Pin T3_Pin */
+  GPIO_InitStruct.Pin = T4_Pin|T3_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
@@ -1192,11 +1277,17 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(T1_GPIO_Port, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : PB2 PB11 */
-  GPIO_InitStruct.Pin = GPIO_PIN_2|GPIO_PIN_11;
-  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+  /*Configure GPIO pin : PB2 */
+  GPIO_InitStruct.Pin = GPIO_PIN_2;
+  GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+
+  /*Configure GPIO pin : BMP_CS_Pin */
+  GPIO_InitStruct.Pin = BMP_CS_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  HAL_GPIO_Init(BMP_CS_GPIO_Port, &GPIO_InitStruct);
 
   /* EXTI interrupt init*/
   HAL_NVIC_SetPriority(EXTI0_IRQn, 0, 0);
@@ -1204,6 +1295,9 @@ static void MX_GPIO_Init(void)
 
   HAL_NVIC_SetPriority(EXTI1_IRQn, 0, 0);
   HAL_NVIC_EnableIRQ(EXTI1_IRQn);
+
+  HAL_NVIC_SetPriority(EXTI2_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(EXTI2_IRQn);
 
 }
 

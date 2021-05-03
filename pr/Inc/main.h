@@ -82,6 +82,8 @@ void Error_Handler(void);
 #define LED3_GPIO_Port GPIOA
 #define LED2_Pin GPIO_PIN_3
 #define LED2_GPIO_Port GPIOA
+#define T4_Pin GPIO_PIN_4
+#define T4_GPIO_Port GPIOC
 #define T3_Pin GPIO_PIN_5
 #define T3_GPIO_Port GPIOC
 #define T2_Pin GPIO_PIN_0
@@ -91,6 +93,8 @@ void Error_Handler(void);
 #define T1_EXTI_IRQn EXTI1_IRQn
 #define HUM_PIN_Pin GPIO_PIN_10
 #define HUM_PIN_GPIO_Port GPIOB
+#define BMP_CS_Pin GPIO_PIN_11
+#define BMP_CS_GPIO_Port GPIOB
 #define STM_KEY_Pin GPIO_PIN_13
 #define STM_KEY_GPIO_Port GPIOB
 #define BLE_ON_Pin GPIO_PIN_14
