@@ -19,6 +19,8 @@ Src/system_stm32l4xx.o: ../Src/system_stm32l4xx.c \
  D:/Studia\ wszystko/Studia\ 5/sem\ 3/praca\ magisterska/kody\ STM/pr/Drivers/STM32L4xx_HAL_Driver/Inc/stm32l4xx_hal_dma.h \
  D:/Studia\ wszystko/Studia\ 5/sem\ 3/praca\ magisterska/kody\ STM/pr/Drivers/STM32L4xx_HAL_Driver/Inc/stm32l4xx_hal_dma_ex.h \
  D:/Studia\ wszystko/Studia\ 5/sem\ 3/praca\ magisterska/kody\ STM/pr/Drivers/STM32L4xx_HAL_Driver/Inc/stm32l4xx_hal_cortex.h \
+ D:/Studia\ wszystko/Studia\ 5/sem\ 3/praca\ magisterska/kody\ STM/pr/Drivers/STM32L4xx_HAL_Driver/Inc/stm32l4xx_hal_comp.h \
+ D:/Studia\ wszystko/Studia\ 5/sem\ 3/praca\ magisterska/kody\ STM/pr/Drivers/STM32L4xx_HAL_Driver/Inc/stm32l4xx_ll_exti.h \
  D:/Studia\ wszystko/Studia\ 5/sem\ 3/praca\ magisterska/kody\ STM/pr/Drivers/STM32L4xx_HAL_Driver/Inc/stm32l4xx_hal_dac.h \
  D:/Studia\ wszystko/Studia\ 5/sem\ 3/praca\ magisterska/kody\ STM/pr/Drivers/STM32L4xx_HAL_Driver/Inc/stm32l4xx_hal_dac_ex.h \
  D:/Studia\ wszystko/Studia\ 5/sem\ 3/praca\ magisterska/kody\ STM/pr/Drivers/STM32L4xx_HAL_Driver/Inc/stm32l4xx_hal_flash.h \
@@ -72,6 +74,10 @@ D:/Studia\ wszystko/Studia\ 5/sem\ 3/praca\ magisterska/kody\ STM/pr/Drivers/STM
 D:/Studia\ wszystko/Studia\ 5/sem\ 3/praca\ magisterska/kody\ STM/pr/Drivers/STM32L4xx_HAL_Driver/Inc/stm32l4xx_hal_dma_ex.h:
 
 D:/Studia\ wszystko/Studia\ 5/sem\ 3/praca\ magisterska/kody\ STM/pr/Drivers/STM32L4xx_HAL_Driver/Inc/stm32l4xx_hal_cortex.h:
+
+D:/Studia\ wszystko/Studia\ 5/sem\ 3/praca\ magisterska/kody\ STM/pr/Drivers/STM32L4xx_HAL_Driver/Inc/stm32l4xx_hal_comp.h:
+
+D:/Studia\ wszystko/Studia\ 5/sem\ 3/praca\ magisterska/kody\ STM/pr/Drivers/STM32L4xx_HAL_Driver/Inc/stm32l4xx_ll_exti.h:
 
 D:/Studia\ wszystko/Studia\ 5/sem\ 3/praca\ magisterska/kody\ STM/pr/Drivers/STM32L4xx_HAL_Driver/Inc/stm32l4xx_hal_dac.h:
 

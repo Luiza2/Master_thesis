@@ -164,6 +164,8 @@ struct bmp388_calib_data{
 /* USER CODE END PM */
 
 /* Private variables ---------------------------------------------------------*/
+COMP_HandleTypeDef hcomp1;
+
 DAC_HandleTypeDef hdac1;
 
 I2C_HandleTypeDef hi2c1;
@@ -186,6 +188,7 @@ static void MX_USART1_UART_Init(void);
 static void MX_UART5_Init(void);
 static void MX_TIM2_Init(void);
 static void MX_DAC1_Init(void);
+static void MX_COMP1_Init(void);
 /* USER CODE BEGIN PFP */
 
 void BMP388_read_temp_reg(struct bmp388_calib_data *calib){
@@ -710,25 +713,32 @@ void pt1000_temp_meas_method3(void){
 }
 
 void HSL1101_hum_meas(void){
+	float time = 0, pojemnosc = 0;
 
 	//zerowanie timera
 	__HAL_TIM_SET_COUNTER(&htim2, 0);
 	HAL_GPIO_WritePin(GPIOB, GPIO_PIN_10, GPIO_PIN_SET);
-	HAL_Delay(1000);
 	//uruchomienie timera
 	HAL_TIM_Base_Start(&htim2);
+	HAL_Delay(10);
 
 	HAL_GPIO_WritePin(GPIOB, GPIO_PIN_10, GPIO_PIN_RESET);
-	HAL_Delay(1000);
+	HAL_Delay(10);
+	time = (float)licznik*1000000/CLK_FREQ;
+
+	pojemnosc = time/1.667485266;//pojemnosc w
+	sprintf(wyslij, "%.12f ", pojemnosc);
+	HAL_UART_Transmit(&huart5, &wyslij, 16, 100);
 }
-/*
+
 void HAL_COMP_TriggerCallback(COMP_HandleTypeDef *hcomp){
-	HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_3);
+	//HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_3);
 	HAL_TIM_Base_Stop(&htim2);
 	licznik = __HAL_TIM_GET_COUNTER(&htim2);
-	sprintf(wyslij, "przerwanie %u ", licznik);
-	HAL_UART_Transmit(&huart5, &wyslij, sizeof(wyslij), 100);
-}*/
+	//sprintf(wyslij, "przerwanie %u ", licznik);
+	//HAL_UART_Transmit(&huart5, &wyslij, sizeof(wyslij), 100);
+}
+
 
 void VEML6070(void){
 	uint8_t data1 = 0x06, read = 0, MSB = 0, LSB = 0, UV_index = 0;
@@ -840,7 +850,7 @@ void GPIO_stage2_humidity(void)
   HAL_TIM_Base_Start(&htim2);
 }
 
-void measure_humidity(void){
+void measure_humidity(void){//pomiar metoda od rezystancji
 	GPIO_stage1_humidity();
 	HAL_Delay(1000);
 	GPIO_stage2_humidity();
@@ -849,12 +859,8 @@ void measure_humidity(void){
 	//sprintf(wyslij, "resistance %f ", resistance);
 	//HAL_UART_Transmit(&huart5, &wyslij, sizeof(wyslij), 100);
 }
-/*
-void HAL_COMP_TriggerCallback(COMP_HandleTypeDef *hcomp) {
 
 
-	HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_3);
-}*/
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -895,6 +901,7 @@ int main(void)
   MX_UART5_Init();
   MX_TIM2_Init();
   MX_DAC1_Init();
+  MX_COMP1_Init();
   /* USER CODE BEGIN 2 */
 
   struct bmp388_calib_data calib_data;
@@ -902,21 +909,20 @@ int main(void)
   HAL_Delay(2000);
 
   HAL_DAC_Start(&hdac1, DAC_CHANNEL_1);
-  HAL_DAC_SetValue(&hdac1, DAC_CHANNEL_1, DAC_ALIGN_12B_R, 2749);//1,91V   2,85*2749/4096
+  HAL_DAC_SetValue(&hdac1, DAC_CHANNEL_1, DAC_ALIGN_12B_R, 2188);
 
   ///testy
-  uint8_t MSB = 0;
 
 
   uint8_t wysylanie[20] = "              ";
-  //HAL_COMP_Start_IT(&hcomp1);
+  HAL_COMP_Start_IT(&hcomp1);
 
 
   sprintf(wyslij, "Metoda_1=[", licznik);
   HAL_UART_Transmit(&huart5, &wyslij, 10, 100);
   for(int i = 0 ; i < 1024; i++)
   {
-	  pt1000_temp_meas_method1();
+	  HSL1101_hum_meas();
 	  if(i == 1023)
 		  continue;
 	  sprintf(wyslij, ";\n", licznik);
@@ -924,6 +930,8 @@ int main(void)
   }
   sprintf(wyslij, "];", licznik);
   HAL_UART_Transmit(&huart5, &wyslij, 2, 100);
+
+
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -933,6 +941,9 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
+
+
+
 	  //measure_humidity();
 	  //VEML6070();
 	  //pt1000_temp_meas_method1();
@@ -1018,6 +1029,40 @@ void SystemClock_Config(void)
 }
 
 /**
+  * @brief COMP1 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_COMP1_Init(void)
+{
+
+  /* USER CODE BEGIN COMP1_Init 0 */
+
+  /* USER CODE END COMP1_Init 0 */
+
+  /* USER CODE BEGIN COMP1_Init 1 */
+
+  /* USER CODE END COMP1_Init 1 */
+  hcomp1.Instance = COMP1;
+  hcomp1.Init.InvertingInput = COMP_INPUT_MINUS_DAC1_CH1;
+  hcomp1.Init.NonInvertingInput = COMP_INPUT_PLUS_IO2;
+  hcomp1.Init.OutputPol = COMP_OUTPUTPOL_NONINVERTED;
+  hcomp1.Init.Hysteresis = COMP_HYSTERESIS_NONE;
+  hcomp1.Init.BlankingSrce = COMP_BLANKINGSRC_NONE;
+  hcomp1.Init.Mode = COMP_POWERMODE_HIGHSPEED;
+  hcomp1.Init.WindowMode = COMP_WINDOWMODE_DISABLE;
+  hcomp1.Init.TriggerMode = COMP_TRIGGERMODE_IT_RISING;
+  if (HAL_COMP_Init(&hcomp1) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN COMP1_Init 2 */
+
+  /* USER CODE END COMP1_Init 2 */
+
+}
+
+/**
   * @brief DAC1 Initialization Function
   * @param None
   * @retval None
@@ -1046,7 +1091,7 @@ static void MX_DAC1_Init(void)
   sConfig.DAC_SampleAndHold = DAC_SAMPLEANDHOLD_DISABLE;
   sConfig.DAC_Trigger = DAC_TRIGGER_NONE;
   sConfig.DAC_OutputBuffer = DAC_OUTPUTBUFFER_ENABLE;
-  sConfig.DAC_ConnectOnChipPeripheral = DAC_CHIPCONNECT_DISABLE;
+  sConfig.DAC_ConnectOnChipPeripheral = DAC_CHIPCONNECT_ENABLE;
   sConfig.DAC_UserTrimming = DAC_TRIMMING_FACTORY;
   if (HAL_DAC_ConfigChannel(&hdac1, &sConfig, DAC_CHANNEL_1) != HAL_OK)
   {
@@ -1242,7 +1287,8 @@ static void MX_GPIO_Init(void)
   HAL_GPIO_WritePin(GPIOC, T4_Pin|T3_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOB, T2_Pin|HUM_PIN_Pin|STM_KEY_Pin|BLE_ON_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOB, T2_Pin|T1_Pin|GPIO_PIN_10|STM_KEY_Pin 
+                          |BLE_ON_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin : PA0 */
   GPIO_InitStruct.Pin = GPIO_PIN_0;
@@ -1264,23 +1310,13 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : T2_Pin HUM_PIN_Pin STM_KEY_Pin BLE_ON_Pin */
-  GPIO_InitStruct.Pin = T2_Pin|HUM_PIN_Pin|STM_KEY_Pin|BLE_ON_Pin;
+  /*Configure GPIO pins : T2_Pin T1_Pin PB10 STM_KEY_Pin 
+                           BLE_ON_Pin */
+  GPIO_InitStruct.Pin = T2_Pin|T1_Pin|GPIO_PIN_10|STM_KEY_Pin 
+                          |BLE_ON_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-  HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
-
-  /*Configure GPIO pin : T1_Pin */
-  GPIO_InitStruct.Pin = T1_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_IT_FALLING;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
-  HAL_GPIO_Init(T1_GPIO_Port, &GPIO_InitStruct);
-
-  /*Configure GPIO pin : PB2 */
-  GPIO_InitStruct.Pin = GPIO_PIN_2;
-  GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
   /*Configure GPIO pin : BMP_CS_Pin */
@@ -1292,12 +1328,6 @@ static void MX_GPIO_Init(void)
   /* EXTI interrupt init*/
   HAL_NVIC_SetPriority(EXTI0_IRQn, 0, 0);
   HAL_NVIC_EnableIRQ(EXTI0_IRQn);
-
-  HAL_NVIC_SetPriority(EXTI1_IRQn, 0, 0);
-  HAL_NVIC_EnableIRQ(EXTI1_IRQn);
-
-  HAL_NVIC_SetPriority(EXTI2_IRQn, 0, 0);
-  HAL_NVIC_EnableIRQ(EXTI2_IRQn);
 
 }
 
