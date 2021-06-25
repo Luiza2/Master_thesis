@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<session version="1.0">
+<refactoring comment="Rename resource &apos;pr/Inc/eeprom_emul_conf_template.h&apos; to &apos;eeprom_emul_conf.h&apos;" description="Rename resource &apos;eeprom_emul_conf_template.h&apos;" flags="7" id="org.eclipse.ltk.core.refactoring.rename.resource" input="Inc/eeprom_emul_conf_template.h" name="eeprom_emul_conf.h" stamp="1624613310762" updateReferences="true"/>
+</session>

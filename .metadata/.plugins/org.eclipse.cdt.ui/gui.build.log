@@ -1,0 +1,21 @@
+16:01:15 **** Build of configuration Debug for project gui ****
+make all 
+Building file: ../startup/startup_stm32l496xx.s
+Invoking: MCU GCC Assembler
+C:\Users\luiza\Desktop\test\gui\Debug
+arm-none-eabi-as -mcpu=cortex-m4 -mthumb -mfloat-abi=hard -mfpu=fpv4-sp-d16 -g -o "startup/startup_stm32l496xx.o" "../startup/startup_stm32l496xx.s"
+Finished building: ../startup/startup_stm32l496xx.s
+ 
+Building file: ../Src/app_x-cube-touchgfx.c
+Invoking: MCU GCC Compiler
+C:\Users\luiza\Desktop\test\gui\Debug
+arm-none-eabi-gcc -mcpu=cortex-m4 -mthumb -mfloat-abi=hard -mfpu=fpv4-sp-d16 '-D__weak=__attribute__((weak))' '-D__packed=__attribute__((__packed__))' -DUSE_HAL_DRIVER -DSTM32L496xx -I"C:/Users/luiza/Desktop/test/gui/Inc" -I"C:/Users/luiza/Desktop/test/gui/Src" -I"C:/Users/luiza/Desktop/test/gui/Drivers/STM32L4xx_HAL_Driver/Inc" -I"C:/Users/luiza/Desktop/test/gui/Drivers/STM32L4xx_HAL_Driver/Inc/Legacy" -I"C:/Users/luiza/Desktop/test/gui/Middlewares/Third_Party/FreeRTOS/Source/include" -I"C:/Users/luiza/Desktop/test/gui/Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS" -I"C:/Users/luiza/Desktop/test/gui/Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F" -I"C:/Users/luiza/Desktop/test/gui/Drivers/CMSIS/Device/ST/STM32L4xx/Include" -I"C:/Users/luiza/Desktop/test/gui/Drivers/CMSIS/Include"  -Og -g3 -Wall -fmessage-length=0 -ffunction-sections -c -fmessage-length=0 -MMD -MP -MF"Src/app_x-cube-touchgfx.d" -MT"Src/app_x-cube-touchgfx.o" -o "Src/app_x-cube-touchgfx.o" "../Src/app_x-cube-touchgfx.c"
+../Src/app_x-cube-touchgfx.c:48:10: fatal error: app_x-cube-gfx1.h: No such file or directory
+ #include "app_x-cube-gfx1.h"
+          ^~~~~~~~~~~~~~~~~~~
+compilation terminated.
+Src/subdir.mk:36: recipe for target 'Src/app_x-cube-touchgfx.o' failed
+make: *** [Src/app_x-cube-touchgfx.o] Error 1
+
+16:01:23 Build Finished (took 8s.654ms)
+

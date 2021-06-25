@@ -2,20 +2,20 @@
 <section name="Workbench">
 	<section name="org.eclipse.ui.texteditor.FindReplaceDialog">
 		<item value="false" key="isRegEx"/>
-		<item value="licznik" key="selection"/>
+		<item value="hrtc" key="selection"/>
 		<item value="false" key="casesensitive"/>
 		<item value="false" key="incremental"/>
 		<item value="true" key="wrap"/>
 		<item value="false" key="wholeword"/>
 		<list key="findhistory">
+			<item value="hrtc"/>
+			<item value="HAL_FLASHEx_DATAEEPROM_Erase"/>
 			<item value="licznik"/>
 			<item value="regi"/>
 			<item value="master_receive"/>
 			<item value="receive"/>
 			<item value="result"/>
 			<item value="read"/>
-			<item value="write"/>
-			<item value="BME280_64BIT_ENABLE"/>
 		</list>
 		<list key="replacehistory">
 			<item value="BMP388"/>

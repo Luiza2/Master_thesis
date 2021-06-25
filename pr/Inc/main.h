@@ -90,6 +90,7 @@ void Error_Handler(void);
 #define T2_GPIO_Port GPIOB
 #define T1_Pin GPIO_PIN_1
 #define T1_GPIO_Port GPIOB
+#define T1_EXTI_IRQn EXTI1_IRQn
 #define BMP_CS_Pin GPIO_PIN_11
 #define BMP_CS_GPIO_Port GPIOB
 #define STM_KEY_Pin GPIO_PIN_13
