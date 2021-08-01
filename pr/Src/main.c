@@ -173,6 +173,8 @@ I2C_HandleTypeDef hi2c1;
 
 RTC_HandleTypeDef hrtc;
 
+SPI_HandleTypeDef hspi1;
+
 TIM_HandleTypeDef htim2;
 
 UART_HandleTypeDef huart5;
@@ -195,6 +197,7 @@ static void MX_TIM2_Init(void);
 static void MX_DAC1_Init(void);
 static void MX_COMP1_Init(void);
 static void MX_RTC_Init(void);
+static void MX_SPI1_Init(void);
 /* USER CODE BEGIN PFP */
 
 void BMP388_read_temp_reg(struct bmp388_calib_data *calib){
@@ -212,9 +215,9 @@ void BMP388_read_temp_reg(struct bmp388_calib_data *calib){
 
 void BMP388_read_press_reg(void){
 	HAL_I2C_Mem_Read(&hi2c1, BMP388_ADDRESS, 0x36, 1, &P1_reg1, 1, 100);
-	HAL_UART_Transmit(&huart5, &P1_reg1, sizeof(P1_reg1), 100);
+	//HAL_UART_Transmit(&huart5, &P1_reg1, sizeof(P1_reg1), 100);
 	HAL_I2C_Mem_Read(&hi2c1, BMP388_ADDRESS, 0x37, 1, &P1_reg2, 1, 100);
-	HAL_UART_Transmit(&huart5, &P1_reg2, sizeof(P1_reg2), 100);
+	//HAL_UART_Transmit(&huart5, &P1_reg2, sizeof(P1_reg2), 100);
 	HAL_I2C_Mem_Read(&hi2c1, BMP388_ADDRESS, 0x38, 1, &P2_reg1, 1, 100);
 	HAL_I2C_Mem_Read(&hi2c1, BMP388_ADDRESS, 0x39, 1, &P2_reg2, 1, 100);
 	HAL_I2C_Mem_Read(&hi2c1, BMP388_ADDRESS, 0x3A, 1, &P3_reg1, 1, 100);
@@ -340,7 +343,7 @@ float BMP388_measure_press(void){
 	pressure = data_msb | data_lsb | data_xlsb;//ok
 
 	pres = (float)pressure;//ok policzone dla cisnienia 1000 i temp 25
-
+	//wynik to temperatura z PT1000
 	partial_data1 = par_p6*wynik;//ok 11833,59375
 	partial_data2 = par_p7*(wynik*wynik);//ok 593,261719
 	partial_data3 = par_p8*(wynik*wynik*wynik);//ok 117,301941
@@ -687,7 +690,36 @@ void GPIO_stage4_method3(void)
   HAL_TIM_Base_Start(&htim2);
 }
 
-void pt1000_temp_meas_method3(void){
+void GPIO_stage5_method3(void)
+{
+  GPIO_InitTypeDef GPIO_InitStruct = {0};
+
+  //pb1 input high impedance
+  GPIO_InitStruct.Pin = GPIO_PIN_1;
+  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+
+  //pb0 input high impedance
+  GPIO_InitStruct.Pin = GPIO_PIN_0;
+  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+
+  //pc5 input high impedance
+  GPIO_InitStruct.Pin = GPIO_PIN_5;
+  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
+
+  //pc4 input high impedance
+  GPIO_InitStruct.Pin = GPIO_PIN_4;
+  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
+}
+
+void pt1000_temp_meas_method3(void){//funkcja którą badałam dokładnośc metod
 	float time_us1 = 0, time_us2 = 0, time_us3 = 0, resistance = 0, suma1 = 0, suma2 = 0, suma3 = 0;
 	float licznik1=0, licznik2=0, licznik3=0;
 
@@ -711,11 +743,61 @@ void pt1000_temp_meas_method3(void){
 
 	licznik3 = (float)licznik;
 
-	//resistance = (licznik1 - licznik2)/(licznik3 - licznik2)*(1330.07 - 942.25) + 942.25;//two point calibration
-	resistance = (licznik1 - licznik2)/(licznik3 - licznik2)*1330.07;//three signal measurement version
+	resistance = (licznik1 - licznik2)/(licznik3 - licznik2)*(1330.07 - 942.25) + 942.25;//two point calibration
+	//resistance = (licznik1 - licznik2)/(licznik3 - licznik2)*1330.07;//three signal measurement version
 
-	sprintf(wyslij, "%f ", resistance);
+	sprintf(wyslij, " %f ", resistance);
 	HAL_UART_Transmit(&huart5, &wyslij, 10, 100);
+}
+
+float pt1000_temp_meas_method32(void){//funkcja do programu, wylicza srednia z x pomiarow
+	float time_us1 = 0, time_us2 = 0, time_us3 = 0, resistance = 0, suma1 = 0, suma2 = 0, suma3 = 0;
+	float licznik1=0, licznik2=0, licznik3=0;
+	float  time = 0;
+	float delta = 0;
+	uint16_t petle = 64;
+
+	for(int i = 0 ; i < petle; i++)
+	  {
+		GPIO_stage1_method3();
+		HAL_Delay(1);
+		GPIO_stage2_method3();
+		HAL_Delay(1);
+		licznik1 = (float)licznik;
+		suma1 += licznik1;
+
+		GPIO_stage1_method3();
+		HAL_Delay(1);
+		GPIO_stage3_method3();
+		HAL_Delay(1);
+		licznik2 = (float)licznik;
+		suma2 += licznik2;
+
+		GPIO_stage1_method3();
+		HAL_Delay(1);
+		GPIO_stage4_method3();
+		HAL_Delay(1);
+		licznik3 = (float)licznik;
+		suma3 += licznik3;
+	  }
+	GPIO_stage5_method3();
+	licznik1 = suma1/petle;
+	licznik2 = suma2/petle;
+	licznik3 = suma3/petle;
+
+	resistance = (licznik1 - licznik2)/(licznik3 - licznik2)*(1330.07 - 942.25) + 942.25;//two point calibration
+	//resistance = (licznik1 - licznik2)/(licznik3 - licznik2)*1330.07;//three signal measurement version
+
+	//sprintf(wyslij, " %f ", resistance);
+	//HAL_UART_Transmit(&huart5, &wyslij, 10, 100);
+
+	delta = 0.0000152748 + 0.00000231 * (1-resistance/1000);
+	temperature = (0.0039083-sqrt(delta))/(0.000001155);
+
+	//sprintf(wyslij, "temp %f ", temperature);
+	//HAL_UART_Transmit(&huart5, &wyslij, 20, 100);
+
+	return temperature;
 }
 
 void HSL1101_hum_meas(void){
@@ -731,11 +813,11 @@ void HSL1101_hum_meas(void){
 
 	HAL_GPIO_WritePin(GPIOB, GPIO_PIN_10, GPIO_PIN_RESET);
 	HAL_Delay(1);
-	/*//pierwsza wersja czyli liczenie wszystkiego na piechote
+	//pierwsza wersja czyli liczenie wszystkiego na piechote
 	time = (float)licznik*1000000/CLK_FREQ;
 
-	pojemnosc = time/1.667485266;//pojemnosc w
-	*/
+	pojemnosc = time/1.667485266;//pojemnosc
+
 
 	//kompensacja pojemnosci na podstawie samego licznika
 	//pojemnosc = licznik*0.0074-12.859;
@@ -755,8 +837,8 @@ void HAL_COMP_TriggerCallback(COMP_HandleTypeDef *hcomp){
 	//HAL_UART_Transmit(&huart5, &wyslij, 6, 100);
 }
 
-void VEML6070(void){
-	uint8_t data1 = 0x06, read = 0, MSB = 0, LSB = 0, UV_index = 0;
+uint8_t VEML6070(void){
+	uint8_t data1 = 0x06, read = 0, MSB = 0, LSB = 0, UV_index = 0, low_power = 0x02;
 	uint16_t light_data = 0;
 	HAL_I2C_Master_Receive(&hi2c1, 0x19, &read, sizeof(read),100);
 	HAL_I2C_Master_Transmit(&hi2c1, 0x70, &data1, sizeof(data1), 100);
@@ -780,20 +862,24 @@ void VEML6070(void){
 	}else if(light_data >= 2055){
 		UV_index = 4;//Extreme
 	}
-	sprintf(wyslij, "index UV: %u ", UV_index);
-	HAL_UART_Transmit(&huart5, &wyslij, sizeof(wyslij), 100);
+	//HAL_I2C_Master_Receive(&hi2c1, 0x19, &read, sizeof(read),100);
+	//HAL_I2C_Master_Transmit(&hi2c1, 0x70, &low_power, sizeof(low_power), 100);
+	//sprintf(wyslij, "index UV: %u ", UV_index);
+	//HAL_UART_Transmit(&huart5, &wyslij, sizeof(wyslij), 100);
+	return UV_index;
 }
 
-void BH1750(void){
-	uint8_t data1 = 0x10, data2 = 0x42, value[2] = {0, 0};
+uint16_t BH1750(void){
+	uint8_t data1 = 0x21, value[2] = {0, 0};
 	uint16_t light_value = 0;
 	HAL_I2C_Master_Transmit(&hi2c1, 0xB8, &data1, sizeof(data1), 100);
 	HAL_I2C_Master_Receive(&hi2c1, 0xB9, value, 2, 100);
 
 	light_value = value[0] << 8 | value[1];
 
-	sprintf(wyslij, "%u[lx]", light_value);
-	HAL_UART_Transmit(&huart5, &wyslij, sizeof(wyslij), 100);
+	//sprintf(wyslij, "%u[lx]", light_value);
+	//HAL_UART_Transmit(&huart5, &wyslij, sizeof(wyslij), 100);
+	return light_value;
 }
 
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin){
@@ -865,27 +951,29 @@ void GPIO_stage2_humidity(void)
   HAL_TIM_Base_Start(&htim2);
 }
 
-void measure_humidity(void){//pomiar metoda od rezystancji
+float measure_humidity(void){//pomiar metoda z komparatorem
 	//pomiar wilgotnosci
 	uint32_t suma = 0, srednia = 0;
 	float pojemnosc = 0, wilgotnosc = 0;
-	for(int i = 0 ; i < 1024; i++)
+	uint16_t petla = 32;
+	for(int i = 0 ; i < petla; i++)
 	{
 	 //pt1000_temp_meas_method1();
 	 HSL1101_hum_meas();
-	  if(i == 1023)
+	  if(i == (petla-1))
 	  	continue;
 	  suma += licznik;
 	  //sprintf(wyslij, "%u ", suma);
 	  //  HAL_UART_Transmit(&huart5, &wyslij, 6, 100);
 	}
-	srednia = (float)suma/1024;
+	srednia = (float)suma/petla;
 	pojemnosc = srednia*0.0074-12.859;
 	wilgotnosc = -3465.6*(pojemnosc/180)*(pojemnosc/180)*(pojemnosc/180)+10732*(pojemnosc/180)*(pojemnosc/180)-10457*(pojemnosc/180)+3245.9;
-	sprintf(wyslij, "poj %f ", pojemnosc);
-	HAL_UART_Transmit(&huart5, &wyslij, 12, 100);
-	sprintf(wyslij, "wilg %f ", wilgotnosc);
-	HAL_UART_Transmit(&huart5, &wyslij, 12, 100);
+	//sprintf(wyslij, "poj %f ", pojemnosc);
+	//HAL_UART_Transmit(&huart5, &wyslij, 12, 100);
+	//sprintf(wyslij, "wilg %f ", wilgotnosc);
+	//HAL_UART_Transmit(&huart5, &wyslij, 20, 100);
+	return wilgotnosc;
 }
 
 void Enter_LowPowerMode(void)
@@ -967,29 +1055,30 @@ int main(void)
   MX_DAC1_Init();
   MX_COMP1_Init();
   MX_RTC_Init();
+  MX_SPI1_Init();
   /* USER CODE BEGIN 2 */
 
   struct bmp388_calib_data calib_data;
-  //BMP388_init(&calib_data);
+  BMP388_init(&calib_data);
   HAL_Delay(2000);
 
-  //HAL_DAC_Start(&hdac1, DAC_CHANNEL_1);
-  //HAL_DAC_SetValue(&hdac1, DAC_CHANNEL_1, DAC_ALIGN_12B_R, 2188);
+  HAL_DAC_Start(&hdac1, DAC_CHANNEL_1);
+  HAL_DAC_SetValue(&hdac1, DAC_CHANNEL_1, DAC_ALIGN_12B_R, 2188);
 
   uint8_t wysylanie[20] = "              ";
   uint8_t MessageLen = 40;
   uint8_t Message[60];
   uint8_t seconds = 0;
-  //HAL_COMP_Start_IT(&hcomp1);
-
-  /*
-  sprintf(wyslij, "Metoda_1=[", licznik);
+  HAL_COMP_Start_IT(&hcomp1);
+/*
+  uint8_t liczba_pomiarow = 128;
+  sprintf(wyslij, "Metoda_4=[", licznik);
   HAL_UART_Transmit(&huart5, &wyslij, 10, 100);
-  for(int i = 0 ; i < 1024; i++)
+  for(int i = 0 ; i < liczba_pomiarow; i++)
   {
-	  //pt1000_temp_meas_method1();
-	  HSL1101_hum_meas();
-	  if(i == 1023)
+	  pt1000_temp_meas_method3();
+	  //HSL1101_hum_meas();
+	  if(i == (liczba_pomiarow-1))
 		  continue;
 	  sprintf(wyslij, ";\n", licznik);
 	  HAL_UART_Transmit(&huart5, &wyslij, 2, 100);
@@ -997,9 +1086,12 @@ int main(void)
   sprintf(wyslij, "];", licznik);
   HAL_UART_Transmit(&huart5, &wyslij, 2, 100);*/
 
-  //HAL_PWR_EnterSTANDBYMode();//2,3 mA
-  //HAL_PWR_EnterSTOPMode(PWR_LOWPOWERREGULATOR_ON, PWR_STOPENTRY_WFE);
-
+  //HAL_GPIO_WritePin(GPIOB, GPIO_PIN_14, GPIO_PIN_SET);
+  uint8_t dane[10]={"info"};
+  uint8_t odczyt[10]={0x00, 0x00, 0x00, 0x00}, UV_index = 0;
+  float temperature = 0, cisnienie = 0, wilgotnosc = 0;
+  uint16_t temperatura = 0x0000, wilg = 0x0000, light_value = 0x0000;
+  uint32_t cisn = 0x000000;
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -1010,46 +1102,81 @@ int main(void)
 
     /* USER CODE BEGIN 3 */
 
+	  //data
+	  HAL_RTC_GetDate(&hrtc, &RtcDate, RTC_FORMAT_BIN);
 
-	  //pt1000_temp_meas_method1();
-	  //measure_humidity();
-	 // VEML6070();
-	  //BH1750();
+	  MessageLen = sprintf((char*)Message, "Data: %02d:%02d:%02d\n\r", RtcDate.WeekDay, RtcDate.Month, RtcDate.Year);
+	  HAL_UART_Transmit(&huart5, Message, MessageLen, 100);
+
+	  //godzina
 	  HAL_RTC_GetTime(&hrtc, &RtcTime, RTC_FORMAT_BIN);
-	  	  HAL_RTC_GetDate(&hrtc, &RtcDate, RTC_FORMAT_BIN);
+	  odczyt[0] = RtcTime.Hours;
+	  odczyt[1] = RtcTime.Minutes;
+	  odczyt[2] = RtcTime.Seconds;
+	  MessageLen = sprintf((char*)Message, "Godzina: %02d:%02d:%02d\n\r", RtcTime.Hours, RtcTime.Minutes, RtcTime.Seconds);
+	  HAL_UART_Transmit(&huart5, Message, MessageLen, 100);
 
-	  	  MessageLen = sprintf((char*)Message, "Ide spac o: %02d:%02d:%02d\n\r", RtcTime.Hours, RtcTime.Minutes, RtcTime.Seconds);
-	  	  HAL_UART_Transmit(&huart5, Message, MessageLen, 100);
-	  	HAL_RTCEx_SetWakeUpTimer_IT(&hrtc, 0x2710, RTC_WAKEUPCLOCK_RTCCLK_DIV16);
-	  	HAL_Delay(1000);
-	  	  Enter_LowPowerMode();
-
-	  	  HAL_RTC_GetTime(&hrtc, &RtcTime, RTC_FORMAT_BIN);
-	  	  HAL_RTC_GetDate(&hrtc, &RtcDate, RTC_FORMAT_BIN);
-
-	  	  MessageLen = sprintf((char*)Message, "Wstalem o: %02d:%02d:%02d\n\r", RtcTime.Hours, RtcTime.Minutes, RtcTime.Seconds);
-	  	  HAL_UART_Transmit(&huart5, Message, MessageLen, 100);
-	  //HSL1101_hum_meas();
-	  //HAL_GPIO_WritePin(GPIOA, GPIO_PIN_2, GPIO_PIN_RESET);
-	  //HAL_GPIO_WritePin(GPIOB, GPIO_PIN_0, GPIO_PIN_RESET);
-	  //HAL_Delay(1000);
-	  //HAL_GPIO_WritePin(GPIOA, GPIO_PIN_2, GPIO_PIN_SET);
-	  //HAL_GPIO_WritePin(GPIOB, GPIO_PIN_0, GPIO_PIN_SET);
-/*
-	   HAL_Delay(1000);
-
-	  wynik = BMP388_measure_temp();
-	  wynik -= 4;
-
-	  sprintf(wysylanie, "temp%0.2f ", wynik);
+	  //temperatura PT1000 OK
+	  temperature = pt1000_temp_meas_method32();
+	  temperature *= 100;
+	  temperatura = (uint16_t)temperature;
+	  odczyt[0] = temperatura>>8;
+	  odczyt[1] = temperatura;
+	  sprintf(wysylanie, "temp%0.2f ", temperature);
 	  HAL_UART_Transmit(&huart5, &wysylanie, sizeof(wysylanie), 100);
+	  //HAL_UART_Transmit(&huart5, odczyt, sizeof(odczyt), 100);
 
+	  //cisnienie BMP388 OK
+	  wynik = 25;
 	  wynik = BMP388_measure_press();
 	  wynik /= 128;
-
-	  sprintf(wysylanie, "cisn%0.2f ", wynik);
+	  cisnienie = wynik * 100;
+	  cisn = (uint32_t)cisnienie;
+	  odczyt[0] = cisn>>16;
+	  odczyt[1] = cisn>>8;
+	  odczyt[2] = cisn;
+	  sprintf(wysylanie, "cisn%0.2f ", cisnienie);
 	  HAL_UART_Transmit(&huart5, &wysylanie, sizeof(wysylanie), 100);
-*/
+	  //HAL_UART_Transmit(&huart5, odczyt, sizeof(odczyt), 100);
+
+	  //wilgotnosc HSL1101 OK
+	  wilgotnosc = measure_humidity();
+	  wilgotnosc *= 100;
+	  wilg = (uint16_t)wilgotnosc;
+	  odczyt[0] = wilg>>8;
+	  odczyt[1] = wilg;
+	  sprintf(wysylanie, "wilg%0.2f ", wilgotnosc);
+	  HAL_UART_Transmit(&huart5, &wysylanie, sizeof(wysylanie), 100);
+	  //HAL_UART_Transmit(&huart5, odczyt, sizeof(odczyt), 100);
+
+	  //index UV VEML6070 OK
+	  UV_index = VEML6070();
+	  odczyt[0] = UV_index;
+	  sprintf(wyslij, "index UV: %u ", UV_index);
+	  HAL_UART_Transmit(&huart5, &wyslij, sizeof(wyslij), 100);
+
+	  //nat. osw. BH1750 OK
+	  light_value = BH1750();
+	  odczyt[0] = light_value>>8;
+	  odczyt[1] = light_value;
+	  sprintf(wyslij, "%u[lx]", light_value);
+	  HAL_UART_Transmit(&huart5, &wyslij, sizeof(wyslij), 100);
+	  //HAL_UART_Transmit(&huart5, odczyt, sizeof(odczyt), 100);
+
+	  HAL_RTC_GetTime(&hrtc, &RtcTime, RTC_FORMAT_BIN);
+	  MessageLen = sprintf((char*)Message, "\n\rIde spac o: %02d:%02d:%02d\n\r", RtcTime.Hours, RtcTime.Minutes, RtcTime.Seconds);
+	  HAL_UART_Transmit(&huart5, Message, MessageLen, 100);
+
+	  Enter_LowPowerMode();
+
+
+	  //HAL_GPIO_WritePin(GPIOA, GPIO_PIN_2, GPIO_PIN_RESET);
+	  // HAL_GPIO_WritePin(GPIOA, GPIO_PIN_3, GPIO_PIN_RESET);
+	  //HAL_Delay(1000);
+	  //HAL_GPIO_WritePin(GPIOA, GPIO_PIN_2, GPIO_PIN_SET);
+	  //HAL_GPIO_WritePin(GPIOA, GPIO_PIN_3, GPIO_PIN_SET);
+
+	  //HAL_Delay(1000);
   }
   /* USER CODE END 3 */
 }
@@ -1064,12 +1191,16 @@ void SystemClock_Config(void)
   RCC_ClkInitTypeDef RCC_ClkInitStruct = {0};
   RCC_PeriphCLKInitTypeDef PeriphClkInit = {0};
 
+  /**Configure LSE Drive Capability 
+  */
+  HAL_PWR_EnableBkUpAccess();
+  __HAL_RCC_LSEDRIVE_CONFIG(RCC_LSEDRIVE_LOW);
   /**Initializes the CPU, AHB and APB busses clocks 
   */
-  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI|RCC_OSCILLATORTYPE_LSI;
+  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI|RCC_OSCILLATORTYPE_LSE;
+  RCC_OscInitStruct.LSEState = RCC_LSE_ON;
   RCC_OscInitStruct.HSIState = RCC_HSI_ON;
   RCC_OscInitStruct.HSICalibrationValue = RCC_HSICALIBRATION_DEFAULT;
-  RCC_OscInitStruct.LSIState = RCC_LSI_ON;
   RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
   RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSI;
   RCC_OscInitStruct.PLL.PLLM = 1;
@@ -1099,7 +1230,7 @@ void SystemClock_Config(void)
   PeriphClkInit.Usart1ClockSelection = RCC_USART1CLKSOURCE_PCLK2;
   PeriphClkInit.Uart5ClockSelection = RCC_UART5CLKSOURCE_PCLK1;
   PeriphClkInit.I2c1ClockSelection = RCC_I2C1CLKSOURCE_PCLK1;
-  PeriphClkInit.RTCClockSelection = RCC_RTCCLKSOURCE_LSI;
+  PeriphClkInit.RTCClockSelection = RCC_RTCCLKSOURCE_LSE;
   if (HAL_RCCEx_PeriphCLKConfig(&PeriphClkInit) != HAL_OK)
   {
     Error_Handler();
@@ -1281,9 +1412,9 @@ static void MX_RTC_Init(void)
   {
     Error_Handler();
   }
-  sDate.WeekDay = RTC_WEEKDAY_FRIDAY;
-  sDate.Month = RTC_MONTH_JUNE;
-  sDate.Date = 0x25;
+  sDate.WeekDay = RTC_WEEKDAY_SUNDAY;
+  sDate.Month = RTC_MONTH_AUGUST;
+  sDate.Date = 0x1;
   sDate.Year = 0x21;
 
   if (HAL_RTC_SetDate(&hrtc, &sDate, RTC_FORMAT_BCD) != HAL_OK)
@@ -1292,13 +1423,53 @@ static void MX_RTC_Init(void)
   }
   /**Enable the WakeUp 
   */
-  if (HAL_RTCEx_SetWakeUpTimer_IT(&hrtc, 0, RTC_WAKEUPCLOCK_RTCCLK_DIV16) != HAL_OK)
+  if (HAL_RTCEx_SetWakeUpTimer_IT(&hrtc, 0, RTC_WAKEUPCLOCK_CK_SPRE_16BITS) != HAL_OK)
   {
     Error_Handler();
   }
   /* USER CODE BEGIN RTC_Init 2 */
 
   /* USER CODE END RTC_Init 2 */
+
+}
+
+/**
+  * @brief SPI1 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_SPI1_Init(void)
+{
+
+  /* USER CODE BEGIN SPI1_Init 0 */
+
+  /* USER CODE END SPI1_Init 0 */
+
+  /* USER CODE BEGIN SPI1_Init 1 */
+
+  /* USER CODE END SPI1_Init 1 */
+  /* SPI1 parameter configuration*/
+  hspi1.Instance = SPI1;
+  hspi1.Init.Mode = SPI_MODE_MASTER;
+  hspi1.Init.Direction = SPI_DIRECTION_2LINES;
+  hspi1.Init.DataSize = SPI_DATASIZE_8BIT;
+  hspi1.Init.CLKPolarity = SPI_POLARITY_LOW;
+  hspi1.Init.CLKPhase = SPI_PHASE_1EDGE;
+  hspi1.Init.NSS = SPI_NSS_HARD_OUTPUT;
+  hspi1.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_2;
+  hspi1.Init.FirstBit = SPI_FIRSTBIT_MSB;
+  hspi1.Init.TIMode = SPI_TIMODE_DISABLE;
+  hspi1.Init.CRCCalculation = SPI_CRCCALCULATION_DISABLE;
+  hspi1.Init.CRCPolynomial = 7;
+  hspi1.Init.CRCLength = SPI_CRC_LENGTH_DATASIZE;
+  hspi1.Init.NSSPMode = SPI_NSS_PULSE_ENABLE;
+  if (HAL_SPI_Init(&hspi1) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN SPI1_Init 2 */
+
+  /* USER CODE END SPI1_Init 2 */
 
 }
 
@@ -1434,16 +1605,27 @@ static void MX_GPIO_Init(void)
   __HAL_RCC_GPIOD_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
+  HAL_GPIO_WritePin(GPIOC, GPIO_PIN_0|T4_Pin|T3_Pin|GPIO_PIN_8 
+                          |GPIO_PIN_9, GPIO_PIN_RESET);
+
+  /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOA, LED3_Pin|LED2_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOC, T4_Pin|T3_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOB, T2_Pin|T1_Pin|GPIO_PIN_10|STM_KEY_Pin 
+                          |BLE_ON_Pin, GPIO_PIN_RESET);
 
-  /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOB, T2_Pin|GPIO_PIN_10|STM_KEY_Pin|BLE_ON_Pin, GPIO_PIN_RESET);
+  /*Configure GPIO pins : PC0 T4_Pin T3_Pin PC8 
+                           PC9 */
+  GPIO_InitStruct.Pin = GPIO_PIN_0|T4_Pin|T3_Pin|GPIO_PIN_8 
+                          |GPIO_PIN_9;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
 
-  /*Configure GPIO pin : PA0 */
-  GPIO_InitStruct.Pin = GPIO_PIN_0;
+  /*Configure GPIO pins : B1_Pin B2_Pin */
+  GPIO_InitStruct.Pin = B1_Pin|B2_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
@@ -1455,25 +1637,14 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : T4_Pin T3_Pin */
-  GPIO_InitStruct.Pin = T4_Pin|T3_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
-  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-  HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
-
-  /*Configure GPIO pins : T2_Pin PB10 STM_KEY_Pin BLE_ON_Pin */
-  GPIO_InitStruct.Pin = T2_Pin|GPIO_PIN_10|STM_KEY_Pin|BLE_ON_Pin;
+  /*Configure GPIO pins : T2_Pin T1_Pin PB10 STM_KEY_Pin 
+                           BLE_ON_Pin */
+  GPIO_InitStruct.Pin = T2_Pin|T1_Pin|GPIO_PIN_10|STM_KEY_Pin 
+                          |BLE_ON_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
-
-  /*Configure GPIO pin : T1_Pin */
-  GPIO_InitStruct.Pin = T1_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
-  HAL_GPIO_Init(T1_GPIO_Port, &GPIO_InitStruct);
 
   /*Configure GPIO pin : BMP_CS_Pin */
   GPIO_InitStruct.Pin = BMP_CS_Pin;
