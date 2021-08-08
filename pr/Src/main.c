@@ -67,6 +67,7 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
+uint8_t kasowanie_flasha1 = 0, kasowanie_flasha2 = 0, ble1 = 0, ble2 = 0, wlacz_ble = 0;
 uint8_t wysylanie[20] = "              ";
 uint8_t T1_reg1 = 0;
 uint8_t T1_reg2 = 0;
@@ -191,14 +192,218 @@ RTC_DateTypeDef RtcDate;
 void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
 static void MX_I2C1_Init(void);
-static void MX_USART1_UART_Init(void);
 static void MX_UART5_Init(void);
 static void MX_TIM2_Init(void);
 static void MX_DAC1_Init(void);
 static void MX_COMP1_Init(void);
 static void MX_RTC_Init(void);
 static void MX_SPI1_Init(void);
+static void MX_USART1_UART_Init(void);
 /* USER CODE BEGIN PFP */
+
+uint8_t	M25P32_Spi(uint8_t	Data)
+{
+	uint8_t	ret;
+	HAL_SPI_TransmitReceive(&hspi1,&Data,&ret,1,100);
+	return ret;
+}
+
+uint8_t * M25P32_ReadID(void)
+{
+  static uint8_t temp[10];
+  HAL_GPIO_WritePin(GPIOA,GPIO_PIN_4,GPIO_PIN_RESET);
+  M25P32_Spi(0x9F);
+  temp[0] = M25P32_Spi(0x00);
+  temp[1] = M25P32_Spi(0x00);
+  temp[2] = M25P32_Spi(0x00);
+  HAL_GPIO_WritePin(GPIOA,GPIO_PIN_4,GPIO_PIN_SET);
+  HAL_UART_Transmit(&huart5, temp, sizeof(temp), 100);
+
+  return temp;
+}
+
+void M25P32_WriteByte(uint32_t address, uint8_t byte)
+{
+	uint8_t adres[3] = {0x00, 0x00, 0x00};
+	HAL_GPIO_WritePin(GPIOA,GPIO_PIN_4,GPIO_PIN_RESET);
+	M25P32_Spi(0x06);//write enable
+	HAL_GPIO_WritePin(GPIOA,GPIO_PIN_4,GPIO_PIN_SET);
+	HAL_GPIO_WritePin(GPIOA,GPIO_PIN_4,GPIO_PIN_RESET);
+	M25P32_Spi(0x02);//page program
+
+	adres[0] = address>>16;
+	adres[1] = address>>8;
+	adres[2] = address;
+
+	M25P32_Spi(adres[0]);
+	M25P32_Spi(adres[1]);
+	M25P32_Spi(adres[2]);
+	M25P32_Spi(byte);
+	HAL_GPIO_WritePin(GPIOA,GPIO_PIN_4,GPIO_PIN_SET);
+	HAL_Delay(1);
+}
+
+void M25P32_ReadByte(uint32_t address, uint32_t value)
+{
+	uint8_t odczyt[10] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+	HAL_GPIO_WritePin(GPIOA,GPIO_PIN_4,GPIO_PIN_RESET);
+	M25P32_Spi(0x0B);
+	M25P32_Spi(address>>16);
+	M25P32_Spi(address>>8);
+	M25P32_Spi(address);
+	M25P32_Spi(0);
+	for(int i = 0 ; i < value; i++)
+	{
+		odczyt[0] = W25P32_Spi(0x00);
+		HAL_UART_Transmit(&huart5, odczyt, 1, 100);
+	}
+	HAL_GPIO_WritePin(GPIOA,GPIO_PIN_4,GPIO_PIN_SET);
+	/*odczyt[0] = W25P32_Spi(0x00);
+	odczyt[1] = W25P32_Spi(0x00);
+	odczyt[2] = W25P32_Spi(0x00);
+	odczyt[3] = W25P32_Spi(0x00);
+	odczyt[4] = W25P32_Spi(0x00);
+	odczyt[5] = W25P32_Spi(0x00);
+	HAL_GPIO_WritePin(GPIOA,GPIO_PIN_4,GPIO_PIN_SET);
+	HAL_UART_Transmit(&huart5, odczyt, sizeof(odczyt), 100);*/
+}
+
+void M25P32_ReadBluetoothByte(uint32_t address, uint32_t value)
+{
+	float temperatura, cisnienie, wilgotnosc;
+	uint32_t cisn = 0;
+	uint16_t temp = 0, wilg = 0, nat_osw = 0;
+	uint8_t odczyt[15], send[60] = {"                                                                                "};
+	HAL_GPIO_WritePin(GPIOA,GPIO_PIN_4,GPIO_PIN_RESET);
+	M25P32_Spi(0x0B);
+	M25P32_Spi(address>>16);
+	M25P32_Spi(address>>8);
+	M25P32_Spi(address);
+	M25P32_Spi(0);
+	for(int i = 0 ; i < value; i++)
+	{
+		odczyt[i] = M25P32_Spi(0x00);
+		//HAL_UART_Transmit(&huart5, odczyt, 1, 100);
+	}
+
+	//formatowanie danych
+	temp = odczyt[5];
+	temp <<= 8;
+	temp |= odczyt[6];
+	temperatura = (float)temp;
+	temperatura /= 100;
+
+	cisn = odczyt[7];
+	cisn <<= 8;
+	cisn |= odczyt[8];
+	cisn <<= 8;
+	cisn |= odczyt[9];
+	cisnienie = (float)cisn;
+	cisnienie /= 100;
+
+	wilg = odczyt[10];
+	wilg <<= 8;
+	wilg |= odczyt[11];
+	wilgotnosc = (float)wilg;
+	wilgotnosc /= 100;
+
+	nat_osw = odczyt[13];
+	nat_osw <<= 8;
+	nat_osw |= odczyt[14];
+
+	sprintf(send, "%d-%d-%d,%d:%d,%0.2f,%0.2f,%0.2f,%d,%d\n", odczyt[0], odczyt[1], odczyt[2], odczyt[3], odczyt[4], temperatura, cisnienie, wilgotnosc, odczyt[12], nat_osw);
+	HAL_UART_Transmit(&huart5, send, sizeof(send), 100);
+	HAL_UART_Transmit(&huart1, send, sizeof(send), 100);
+	HAL_GPIO_WritePin(GPIOA,GPIO_PIN_4,GPIO_PIN_SET);
+}
+
+uint8_t M25P32_ReadOneByte(uint32_t address)
+{
+	uint8_t odczyt[10] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+	HAL_GPIO_WritePin(GPIOA,GPIO_PIN_4,GPIO_PIN_RESET);
+	M25P32_Spi(0x0B);
+	M25P32_Spi(address>>16);
+	M25P32_Spi(address>>8);
+	M25P32_Spi(address);
+	M25P32_Spi(0);
+	odczyt[0] = M25P32_Spi(0x00);
+	//HAL_UART_Transmit(&huart5, odczyt, 1, 100);
+	HAL_GPIO_WritePin(GPIOA,GPIO_PIN_4,GPIO_PIN_SET);
+
+	return odczyt[0];
+}
+
+uint32_t M25P32_CheckFreeAddress()
+{
+	uint8_t first, second, wyslij[30];
+	uint32_t free = 0;
+
+	for(uint32_t i = 0; i < 0x400000; i++)
+	{
+		first = M25P32_ReadOneByte(i);
+		//HAL_UART_Transmit(&huart5, wyslij, 1, 100);
+		//HAL_Delay(2);
+		second = M25P32_ReadOneByte(i+1);
+		//HAL_Delay(300);
+		if(first == 0xFF && second == 0xFF)
+		{
+			free = i;
+			sprintf(wyslij, " Pierwszy wolny adres to %d ", i);
+			//HAL_UART_Transmit(&huart5, wyslij, sizeof(wyslij), 100);
+			return free;
+			break;
+		}
+	}
+}
+
+void M25P32_WaitForWriteEnd()
+{
+	uint8_t status = 0, wyslij[10];
+	HAL_Delay(1);
+	HAL_GPIO_WritePin(GPIOA,GPIO_PIN_4,GPIO_PIN_RESET);
+	M25P32_Spi(0x05);//read status register
+	do
+	{
+		status = M25P32_Spi(0x00);//nic nie znaczacy bajt
+		//sprintf(wyslij, " zajete %d ", 0x00);
+		//HAL_UART_Transmit(&huart5, wyslij, sizeof(wyslij), 100);
+		HAL_Delay(1);
+	} while((status & 0x01) == 0x01);//bit 1 odpowiada za status pamieci, 1 oznacza write in progress
+	HAL_GPIO_WritePin(GPIOA,GPIO_PIN_4,GPIO_PIN_SET);
+}
+
+void M25P32_Erase()
+{
+	uint8_t wyslij[10] = {"kasowanie"};
+	HAL_GPIO_WritePin(GPIOA,GPIO_PIN_4,GPIO_PIN_RESET);
+	M25P32_Spi(0x06);//write enable
+	HAL_GPIO_WritePin(GPIOA,GPIO_PIN_4,GPIO_PIN_SET);
+	HAL_GPIO_WritePin(GPIOA,GPIO_PIN_4,GPIO_PIN_RESET);
+	M25P32_Spi(0xC7);//bulk erase
+	HAL_GPIO_WritePin(GPIOA,GPIO_PIN_4,GPIO_PIN_SET);
+	HAL_UART_Transmit(&huart5, wyslij, sizeof(wyslij), 100);
+	M25P32_WaitForWriteEnd();
+}
+
+void M25P32_DeepPowerDown()
+{
+	uint8_t wyslij[10];
+	HAL_GPIO_WritePin(GPIOA,GPIO_PIN_4,GPIO_PIN_RESET);
+	M25P32_Spi(0xB9);//deep power down
+	HAL_GPIO_WritePin(GPIOA,GPIO_PIN_4,GPIO_PIN_SET);
+	sprintf(wyslij, " power down", 0x00);
+	HAL_UART_Transmit(&huart5, wyslij, sizeof(wyslij), 100);
+}
+
+void M25P32_WakeUp()
+{
+	uint8_t wyslij[10];
+	HAL_GPIO_WritePin(GPIOA,GPIO_PIN_4,GPIO_PIN_RESET);
+	M25P32_Spi(0xAB);//release from deep power down
+	HAL_GPIO_WritePin(GPIOA,GPIO_PIN_4,GPIO_PIN_SET);
+	sprintf(wyslij, " wakeup %d ", 0x00);
+	HAL_UART_Transmit(&huart5, wyslij, sizeof(wyslij), 100);
+}
 
 void BMP388_read_temp_reg(struct bmp388_calib_data *calib){
 	HAL_I2C_Mem_Read(&hi2c1, BMP388_ADDRESS, 0x31, 1, &T1_reg1 , 1, 100);
@@ -830,7 +1035,7 @@ void HSL1101_hum_meas(void){
 }
 
 void HAL_COMP_TriggerCallback(COMP_HandleTypeDef *hcomp){
-	HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_3);
+	//HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_3);
 	HAL_TIM_Base_Stop(&htim2);
 	licznik = __HAL_TIM_GET_COUNTER(&htim2);
 	//sprintf(wyslij, "%u ", licznik);
@@ -883,13 +1088,20 @@ uint16_t BH1750(void){
 }
 
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin){
+	GPIO_PinState status;
 	if(GPIO_Pin == GPIO_PIN_0){
-		HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_2);
-	}else if(GPIO_Pin == GPIO_PIN_1)
+
+		ble1++;
+		HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_3);
+		sprintf(wyslij, "zmienna BLE 1 %d ", ble1);
+		HAL_UART_Transmit(&huart5, &wyslij, sizeof(wyslij), 100);
+		if(ble1 == 3) ble1 = 0;
+	}
+	if(GPIO_Pin == GPIO_PIN_1)
 	{
 	    HAL_TIM_Base_Stop(&htim2);
 	    licznik = __HAL_TIM_GET_COUNTER(&htim2);
-
+	    //HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_3);
 	    //sprintf(wyslij, "przerwanie %u ", licznik);
 	    //HAL_UART_Transmit(&huart5, &wyslij, sizeof(wyslij), 100);
 	}else if(GPIO_Pin == GPIO_PIN_2)
@@ -899,6 +1111,14 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin){
 
 	    sprintf(wyslij, "przerwanie %u ", licznik);
 	    HAL_UART_Transmit(&huart5, &wyslij, sizeof(wyslij), 100);
+	}else if(GPIO_Pin == GPIO_PIN_13)
+	{
+
+		ble2++;
+		HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_2);
+		sprintf(wyslij, "zmienna BLE 2 %d ", ble1);
+		HAL_UART_Transmit(&huart5, &wyslij, sizeof(wyslij), 100);
+		if(ble2 == 3) ble2 = 0;
 	}
 }
 
@@ -991,7 +1211,7 @@ void Enter_LowPowerMode(void)
   Wakeup Time = 5 s = 0,5ms  * WakeUpCounter
   ==> WakeUpCounter = 5/0,5ms = 0x2710
 	**/
-  HAL_RTCEx_SetWakeUpTimer_IT(&hrtc, 0x2710, RTC_WAKEUPCLOCK_RTCCLK_DIV16);
+  HAL_RTCEx_SetWakeUpTimer_IT(&hrtc, 0x0003, RTC_WAKEUPCLOCK_CK_SPRE_16BITS);
 
   HAL_SuspendTick();      			/* To Avoid timer wake-up. */
 
@@ -1011,6 +1231,20 @@ void Enter_LowPowerMode(void)
   HAL_RTCEx_DeactivateWakeUpTimer(&hrtc);
 
   SystemClock_Config();   /* Re-configure the system clock */
+}
+
+void BluetoothSendData()
+{
+	uint8_t dane[10] = {"info"};
+	uint32_t address = 0;
+	address = M25P32_CheckFreeAddress();
+	//HAL_UART_Transmit(&huart5, dane, sizeof(dane), 100);
+	for(int i = 0; i < address; i+=15)
+	{
+		//sprintf(dane, "%d", i);
+		//HAL_UART_Transmit(&huart5, dane, sizeof(dane), 100);
+		M25P32_ReadBluetoothByte(i, 15);
+	}
 }
 
 /* USER CODE END PFP */
@@ -1049,13 +1283,13 @@ int main(void)
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
   MX_I2C1_Init();
-  MX_USART1_UART_Init();
   MX_UART5_Init();
   MX_TIM2_Init();
   MX_DAC1_Init();
   MX_COMP1_Init();
   MX_RTC_Init();
   MX_SPI1_Init();
+  MX_USART1_UART_Init();
   /* USER CODE BEGIN 2 */
 
   struct bmp388_calib_data calib_data;
@@ -1070,6 +1304,8 @@ int main(void)
   uint8_t Message[60];
   uint8_t seconds = 0;
   HAL_COMP_Start_IT(&hcomp1);
+  HAL_GPIO_WritePin(GPIOC, GPIO_PIN_8, GPIO_PIN_SET);//flash HOLD
+  HAL_GPIO_WritePin(GPIOC, GPIO_PIN_9, GPIO_PIN_RESET);//flash WP
 /*
   uint8_t liczba_pomiarow = 128;
   sprintf(wyslij, "Metoda_4=[", licznik);
@@ -1088,10 +1324,18 @@ int main(void)
 
   //HAL_GPIO_WritePin(GPIOB, GPIO_PIN_14, GPIO_PIN_SET);
   uint8_t dane[10]={"info"};
-  uint8_t odczyt[10]={0x00, 0x00, 0x00, 0x00}, UV_index = 0;
+  uint8_t dane1[10]={"wysylam dane"};
+  uint8_t dane2[10]={"ble_off"};
+  uint8_t odczyt[16]={0x00, 0x00, 0x00, 0x00}, UV_index = 0;
   float temperature = 0, cisnienie = 0, wilgotnosc = 0;
   uint16_t temperatura = 0x0000, wilg = 0x0000, light_value = 0x0000;
   uint32_t cisn = 0x000000;
+  uint32_t free_memory_address = 0;
+  HAL_GPIO_WritePin(GPIOB, GPIO_PIN_14, GPIO_PIN_SET);
+  HAL_GPIO_WritePin(GPIOB, GPIO_PIN_13, GPIO_PIN_SET);
+  //BluetoothSendData();
+  // W25P32_ReadID();
+  //W25P32_ReadByte(0x00000000, 120);
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -1102,73 +1346,125 @@ int main(void)
 
     /* USER CODE BEGIN 3 */
 
-	  //data
-	  HAL_RTC_GetDate(&hrtc, &RtcDate, RTC_FORMAT_BIN);
 
-	  MessageLen = sprintf((char*)Message, "Data: %02d:%02d:%02d\n\r", RtcDate.WeekDay, RtcDate.Month, RtcDate.Year);
-	  HAL_UART_Transmit(&huart5, Message, MessageLen, 100);
 
-	  //godzina
-	  HAL_RTC_GetTime(&hrtc, &RtcTime, RTC_FORMAT_BIN);
-	  odczyt[0] = RtcTime.Hours;
-	  odczyt[1] = RtcTime.Minutes;
-	  odczyt[2] = RtcTime.Seconds;
-	  MessageLen = sprintf((char*)Message, "Godzina: %02d:%02d:%02d\n\r", RtcTime.Hours, RtcTime.Minutes, RtcTime.Seconds);
-	  HAL_UART_Transmit(&huart5, Message, MessageLen, 100);
+	  if(ble1 == 1 && ble2 == 2)//wyczysc pamiec
+	  {
+		  ble1 = 0;
+		  ble2 = 0;
+		  M25P32_Erase();
+		  for(int i = 0 ; i < 20; i++)
+		  {
+			  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_3, GPIO_PIN_SET);
+			  HAL_Delay(500);
+			  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_3, GPIO_PIN_RESET);
+			  HAL_Delay(500);
+		  }
+	  }
 
-	  //temperatura PT1000 OK
-	  temperature = pt1000_temp_meas_method32();
-	  temperature *= 100;
-	  temperatura = (uint16_t)temperature;
-	  odczyt[0] = temperatura>>8;
-	  odczyt[1] = temperatura;
-	  sprintf(wysylanie, "temp%0.2f ", temperature);
-	  HAL_UART_Transmit(&huart5, &wysylanie, sizeof(wysylanie), 100);
-	  //HAL_UART_Transmit(&huart5, odczyt, sizeof(odczyt), 100);
+	  if(ble1 == 0 && ble2 == 2)//wylacz ble
+	  {
+		  HAL_GPIO_WritePin(GPIOB, GPIO_PIN_14, GPIO_PIN_RESET);
+		  //HAL_UART_Transmit(&huart5, dane2, sizeof(dane2), 100);
+		  ble1 = 0;
+		  ble2 = 0;
+		  wlacz_ble = 0;
+	  }
 
-	  //cisnienie BMP388 OK
-	  wynik = 25;
-	  wynik = BMP388_measure_press();
-	  wynik /= 128;
-	  cisnienie = wynik * 100;
-	  cisn = (uint32_t)cisnienie;
-	  odczyt[0] = cisn>>16;
-	  odczyt[1] = cisn>>8;
-	  odczyt[2] = cisn;
-	  sprintf(wysylanie, "cisn%0.2f ", cisnienie);
-	  HAL_UART_Transmit(&huart5, &wysylanie, sizeof(wysylanie), 100);
-	  //HAL_UART_Transmit(&huart5, odczyt, sizeof(odczyt), 100);
+	  if(ble1 == 2 && ble2 == 0)//wlacz ble
+	  {
+		  HAL_GPIO_WritePin(GPIOB, GPIO_PIN_14, GPIO_PIN_SET);
+		  ble1 = 0;
+		  ble2 = 0;
+		  wlacz_ble = 1;
+		  //HAL_UART_Transmit(&huart5, dane1, sizeof(dane1), 100);
+	  }
 
-	  //wilgotnosc HSL1101 OK
-	  wilgotnosc = measure_humidity();
-	  wilgotnosc *= 100;
-	  wilg = (uint16_t)wilgotnosc;
-	  odczyt[0] = wilg>>8;
-	  odczyt[1] = wilg;
-	  sprintf(wysylanie, "wilg%0.2f ", wilgotnosc);
-	  HAL_UART_Transmit(&huart5, &wysylanie, sizeof(wysylanie), 100);
-	  //HAL_UART_Transmit(&huart5, odczyt, sizeof(odczyt), 100);
+	  if(ble1 == 2 && ble2 == 1)//wyslij dane
+	  {
+		  BluetoothSendData();
+		  ble1 = 0;
+		  ble2 = 0;
+	  }
 
-	  //index UV VEML6070 OK
-	  UV_index = VEML6070();
-	  odczyt[0] = UV_index;
-	  sprintf(wyslij, "index UV: %u ", UV_index);
-	  HAL_UART_Transmit(&huart5, &wyslij, sizeof(wyslij), 100);
+	  if(wlacz_ble == 0)
+	  {
+		  //sleep
+		  Enter_LowPowerMode();
 
-	  //nat. osw. BH1750 OK
-	  light_value = BH1750();
-	  odczyt[0] = light_value>>8;
-	  odczyt[1] = light_value;
-	  sprintf(wyslij, "%u[lx]", light_value);
-	  HAL_UART_Transmit(&huart5, &wyslij, sizeof(wyslij), 100);
-	  //HAL_UART_Transmit(&huart5, odczyt, sizeof(odczyt), 100);
+		  //data
+		  HAL_RTC_GetDate(&hrtc, &RtcDate, RTC_FORMAT_BIN);
+		  odczyt[0] = RtcDate.Date;
+		  odczyt[1] = RtcDate.Month;
+		  odczyt[2] = RtcDate.Year;
+		  MessageLen = sprintf((char*)Message, "Data: %02d:%02d:%02d\n\r", RtcDate.Date, RtcDate.Month, RtcDate.Year);
+		  HAL_UART_Transmit(&huart5, Message, MessageLen, 100);
 
-	  HAL_RTC_GetTime(&hrtc, &RtcTime, RTC_FORMAT_BIN);
-	  MessageLen = sprintf((char*)Message, "\n\rIde spac o: %02d:%02d:%02d\n\r", RtcTime.Hours, RtcTime.Minutes, RtcTime.Seconds);
-	  HAL_UART_Transmit(&huart5, Message, MessageLen, 100);
+		  //godzina
+		  HAL_RTC_GetTime(&hrtc, &RtcTime, RTC_FORMAT_BIN);
+		  odczyt[3] = RtcTime.Hours;
+		  odczyt[4] = RtcTime.Minutes;
+		  MessageLen = sprintf((char*)Message, "Godzina: %02d:%02d:%02d\n\r", RtcTime.Hours, RtcTime.Minutes, RtcTime.Seconds);
+		  HAL_UART_Transmit(&huart5, Message, MessageLen, 100);
 
-	  Enter_LowPowerMode();
+		  //temperatura PT1000 OK
+		  temperature = pt1000_temp_meas_method32();
+		  temperature *= 100;
+		  temperatura = (uint16_t)temperature;
+		  odczyt[5] = temperatura>>8;
+		  odczyt[6] = temperatura;
+		  sprintf(wysylanie, "temp%0.2f ", temperature);
+		  HAL_UART_Transmit(&huart5, &wysylanie, sizeof(wysylanie), 100);
+		  //HAL_UART_Transmit(&huart5, odczyt, sizeof(odczyt), 100);
 
+		  //cisnienie BMP388 OK
+		  wynik = 25;
+		  wynik = BMP388_measure_press();
+		  wynik /= 128;
+		  cisnienie = wynik * 100;
+		  cisn = (uint32_t)cisnienie;
+		  odczyt[7] = cisn>>16;
+		  odczyt[8] = cisn>>8;
+		  odczyt[9] = cisn;
+		  sprintf(wysylanie, "cisn%0.2f ", cisnienie);
+		  HAL_UART_Transmit(&huart5, &wysylanie, sizeof(wysylanie), 100);
+		  //HAL_UART_Transmit(&huart5, odczyt, sizeof(odczyt), 100);
+		  //wilgotnosc HSL1101 OK
+		  wilgotnosc = measure_humidity();
+		  wilgotnosc *= 100;
+		  wilg = (uint16_t)wilgotnosc;
+		  odczyt[10] = wilg>>8;
+		  odczyt[11] = wilg;
+		  sprintf(wysylanie, "wilg%0.2f ", wilgotnosc);
+		  HAL_UART_Transmit(&huart5, &wysylanie, sizeof(wysylanie), 100);
+		  //HAL_UART_Transmit(&huart5, odczyt, sizeof(odczyt), 100);
+
+		  //index UV VEML6070 OK
+		  UV_index = VEML6070();
+		  odczyt[12] = UV_index;
+		  sprintf(wyslij, "index UV: %u ", UV_index);
+		  HAL_UART_Transmit(&huart5, &wyslij, sizeof(wyslij), 100);
+
+		  //nat. osw. BH1750 OK
+		  light_value = BH1750();
+		  odczyt[13] = light_value>>8;
+		  odczyt[14] = light_value;
+		  sprintf(wyslij, "%u[lx]", light_value);
+		  HAL_UART_Transmit(&huart5, &wyslij, sizeof(wyslij), 100);
+		  //HAL_UART_Transmit(&huart5, odczyt, sizeof(odczyt), 100);
+
+		  HAL_RTC_GetTime(&hrtc, &RtcTime, RTC_FORMAT_BIN);
+		  MessageLen = sprintf((char*)Message, "\n\rTryb sleep o: %02d:%02d:%02d\n\r", RtcTime.Hours, RtcTime.Minutes, RtcTime.Seconds);
+		  HAL_UART_Transmit(&huart5, Message, MessageLen, 100);
+
+		  //szukanie niezapisanych komorek pamieci
+		  free_memory_address = M25P32_CheckFreeAddress();
+		  for(int i = 0 ; i < 15; i++)//zapis 30 bajtow z pomiaru
+		  {
+			  M25P32_WriteByte((free_memory_address+i), odczyt[i]);
+		  }
+
+	  }
 
 	  //HAL_GPIO_WritePin(GPIOA, GPIO_PIN_2, GPIO_PIN_RESET);
 	  // HAL_GPIO_WritePin(GPIOA, GPIO_PIN_3, GPIO_PIN_RESET);
@@ -1176,6 +1472,7 @@ int main(void)
 	  //HAL_GPIO_WritePin(GPIOA, GPIO_PIN_2, GPIO_PIN_SET);
 	  //HAL_GPIO_WritePin(GPIOA, GPIO_PIN_3, GPIO_PIN_SET);
 
+	  //W25P32_CheckFreeAddress();
 	  //HAL_Delay(1000);
   }
   /* USER CODE END 3 */
@@ -1403,8 +1700,8 @@ static void MX_RTC_Init(void)
 
   /**Initialize RTC and set the Time and Date 
   */
-  sTime.Hours = 0x16;
-  sTime.Minutes = 0x30;
+  sTime.Hours = 0x11;
+  sTime.Minutes = 0x16;
   sTime.Seconds = 0x0;
   sTime.DayLightSaving = RTC_DAYLIGHTSAVING_NONE;
   sTime.StoreOperation = RTC_STOREOPERATION_RESET;
@@ -1455,8 +1752,8 @@ static void MX_SPI1_Init(void)
   hspi1.Init.DataSize = SPI_DATASIZE_8BIT;
   hspi1.Init.CLKPolarity = SPI_POLARITY_LOW;
   hspi1.Init.CLKPhase = SPI_PHASE_1EDGE;
-  hspi1.Init.NSS = SPI_NSS_HARD_OUTPUT;
-  hspi1.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_2;
+  hspi1.Init.NSS = SPI_NSS_SOFT;
+  hspi1.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_32;
   hspi1.Init.FirstBit = SPI_FIRSTBIT_MSB;
   hspi1.Init.TIMode = SPI_TIMODE_DISABLE;
   hspi1.Init.CRCCalculation = SPI_CRCCALCULATION_DISABLE;
@@ -1609,7 +1906,7 @@ static void MX_GPIO_Init(void)
                           |GPIO_PIN_9, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOA, LED3_Pin|LED2_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOA, LED3_Pin|LED2_Pin|GPIO_PIN_4, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOB, T2_Pin|T1_Pin|GPIO_PIN_10|STM_KEY_Pin 
@@ -1624,14 +1921,14 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : B1_Pin B2_Pin */
-  GPIO_InitStruct.Pin = B1_Pin|B2_Pin;
+  /*Configure GPIO pins : B1_Pin B2_Pin PA13 */
+  GPIO_InitStruct.Pin = B1_Pin|B2_Pin|GPIO_PIN_13;
   GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : LED3_Pin LED2_Pin */
-  GPIO_InitStruct.Pin = LED3_Pin|LED2_Pin;
+  /*Configure GPIO pins : LED3_Pin LED2_Pin PA4 */
+  GPIO_InitStruct.Pin = LED3_Pin|LED2_Pin|GPIO_PIN_4;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
@@ -1658,6 +1955,9 @@ static void MX_GPIO_Init(void)
 
   HAL_NVIC_SetPriority(EXTI1_IRQn, 0, 0);
   HAL_NVIC_EnableIRQ(EXTI1_IRQn);
+
+  HAL_NVIC_SetPriority(EXTI15_10_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(EXTI15_10_IRQn);
 
 }
 

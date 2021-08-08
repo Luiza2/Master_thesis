@@ -75,6 +75,7 @@ void PVD_PVM_IRQHandler(void);
 void RTC_WKUP_IRQHandler(void);
 void EXTI0_IRQHandler(void);
 void EXTI1_IRQHandler(void);
+void EXTI15_10_IRQHandler(void);
 void COMP_IRQHandler(void);
 /* USER CODE BEGIN EFP */
 
