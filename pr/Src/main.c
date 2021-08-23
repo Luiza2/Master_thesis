@@ -84,26 +84,26 @@ uint8_t P5_reg1 = 0;
 uint8_t P5_reg2 = 0;
 uint8_t P6_reg1 = 0;
 uint8_t P6_reg2 = 0;
-uint8_t P7_reg1 = 0;
-uint8_t P8_reg1 = 0;
+int8_t P7_reg1 = 0;
+int8_t P8_reg1 = 0;
 uint8_t P9_reg1 = 0;
 uint8_t P9_reg2 = 0;
-uint8_t P10_reg1 = 0;
-uint8_t P11_reg1 = 0;
+int8_t P10_reg1 = 0;
+int8_t P11_reg1 = 0;
 int16_t NVM_PAR_T1 = 0;//27748;
 int16_t NVM_PAR_T2 = 0;//18555;
-int16_t NVM_PAR_T3 = 0;//246;
+int8_t NVM_PAR_T3 = 0;//-10;
 int16_t NVM_PAR_P1 = 0;
-uint16_t NVM_PAR_P2 = 0;
+int16_t NVM_PAR_P2 = 0;
 int16_t NVM_PAR_P3 = 0;
 int16_t NVM_PAR_P4 = 0;
 int16_t NVM_PAR_P5 = 0;
 int16_t NVM_PAR_P6 = 0;
-int16_t NVM_PAR_P7 = 0;
-int16_t NVM_PAR_P8 = 0;
+int8_t NVM_PAR_P7 = 0;
+int8_t NVM_PAR_P8 = 0;
 int16_t NVM_PAR_P9 = 0;
-int16_t NVM_PAR_P10 = 0;
-int16_t NVM_PAR_P11 = 0;
+int8_t NVM_PAR_P10 = 0;
+int8_t NVM_PAR_P11 = 0;
 
 uint8_t wyslij[20] = "OK";
 
@@ -311,7 +311,7 @@ void M25P32_ReadBluetoothByte(uint32_t address, uint32_t value)
 	nat_osw <<= 8;
 	nat_osw |= odczyt[14];
 
-	sprintf(send, "%d-%d-%d,%d:%d,%0.2f,%0.2f,%0.2f,%d,%d\n", odczyt[0], odczyt[1], odczyt[2], odczyt[3], odczyt[4], temperatura, cisnienie, wilgotnosc, odczyt[12], nat_osw);
+	sprintf(send, "%d-%d-20%d,%d:%d,%0.2f,%0.2f,%0.2f,%d,%d\n", odczyt[0], odczyt[1], odczyt[2], odczyt[3], odczyt[4], temperatura, cisnienie, wilgotnosc, odczyt[12], nat_osw);
 	HAL_UART_Transmit(&huart5, send, sizeof(send), 100);
 	HAL_UART_Transmit(&huart1, send, sizeof(send), 100);
 	HAL_GPIO_WritePin(GPIOA,GPIO_PIN_4,GPIO_PIN_SET);
@@ -1211,7 +1211,7 @@ void Enter_LowPowerMode(void)
   Wakeup Time = 5 s = 0,5ms  * WakeUpCounter
   ==> WakeUpCounter = 5/0,5ms = 0x2710
 	**/
-  HAL_RTCEx_SetWakeUpTimer_IT(&hrtc, 0x0003, RTC_WAKEUPCLOCK_CK_SPRE_16BITS);
+  HAL_RTCEx_SetWakeUpTimer_IT(&hrtc, 0x0004, RTC_WAKEUPCLOCK_CK_SPRE_16BITS);
 
   HAL_SuspendTick();      			/* To Avoid timer wake-up. */
 
@@ -1331,7 +1331,7 @@ int main(void)
   uint16_t temperatura = 0x0000, wilg = 0x0000, light_value = 0x0000;
   uint32_t cisn = 0x000000;
   uint32_t free_memory_address = 0;
-  HAL_GPIO_WritePin(GPIOB, GPIO_PIN_14, GPIO_PIN_SET);
+  //HAL_GPIO_WritePin(GPIOB, GPIO_PIN_14, GPIO_PIN_SET);
   HAL_GPIO_WritePin(GPIOB, GPIO_PIN_13, GPIO_PIN_SET);
   //BluetoothSendData();
   // W25P32_ReadID();
@@ -1345,8 +1345,6 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-
-
 
 	  if(ble1 == 1 && ble2 == 2)//wyczysc pamiec
 	  {
@@ -1389,8 +1387,6 @@ int main(void)
 
 	  if(wlacz_ble == 0)
 	  {
-		  //sleep
-		  Enter_LowPowerMode();
 
 		  //data
 		  HAL_RTC_GetDate(&hrtc, &RtcDate, RTC_FORMAT_BIN);
@@ -1418,10 +1414,9 @@ int main(void)
 		  //HAL_UART_Transmit(&huart5, odczyt, sizeof(odczyt), 100);
 
 		  //cisnienie BMP388 OK
-		  wynik = 25;
+		  wynik = temperature/100;
 		  wynik = BMP388_measure_press();
-		  wynik /= 128;
-		  cisnienie = wynik * 100;
+		  cisnienie = wynik;
 		  cisn = (uint32_t)cisnienie;
 		  odczyt[7] = cisn>>16;
 		  odczyt[8] = cisn>>8;
@@ -1453,10 +1448,6 @@ int main(void)
 		  HAL_UART_Transmit(&huart5, &wyslij, sizeof(wyslij), 100);
 		  //HAL_UART_Transmit(&huart5, odczyt, sizeof(odczyt), 100);
 
-		  HAL_RTC_GetTime(&hrtc, &RtcTime, RTC_FORMAT_BIN);
-		  MessageLen = sprintf((char*)Message, "\n\rTryb sleep o: %02d:%02d:%02d\n\r", RtcTime.Hours, RtcTime.Minutes, RtcTime.Seconds);
-		  HAL_UART_Transmit(&huart5, Message, MessageLen, 100);
-
 		  //szukanie niezapisanych komorek pamieci
 		  free_memory_address = M25P32_CheckFreeAddress();
 		  for(int i = 0 ; i < 15; i++)//zapis 30 bajtow z pomiaru
@@ -1464,6 +1455,12 @@ int main(void)
 			  M25P32_WriteByte((free_memory_address+i), odczyt[i]);
 		  }
 
+
+		  HAL_RTC_GetTime(&hrtc, &RtcTime, RTC_FORMAT_BIN);
+		  MessageLen = sprintf((char*)Message, "\n\rTryb sleep o: %02d:%02d:%02d\n\r", RtcTime.Hours, RtcTime.Minutes, RtcTime.Seconds);
+		  HAL_UART_Transmit(&huart5, Message, MessageLen, 100);
+		  //sleep
+		  Enter_LowPowerMode();
 	  }
 
 	  //HAL_GPIO_WritePin(GPIOA, GPIO_PIN_2, GPIO_PIN_RESET);
@@ -1473,7 +1470,7 @@ int main(void)
 	  //HAL_GPIO_WritePin(GPIOA, GPIO_PIN_3, GPIO_PIN_SET);
 
 	  //W25P32_CheckFreeAddress();
-	  //HAL_Delay(1000);
+	  //HAL_Delay(1000);*/
   }
   /* USER CODE END 3 */
 }
@@ -1700,7 +1697,7 @@ static void MX_RTC_Init(void)
 
   /**Initialize RTC and set the Time and Date 
   */
-  sTime.Hours = 0x11;
+  sTime.Hours = 0x18;
   sTime.Minutes = 0x16;
   sTime.Seconds = 0x0;
   sTime.DayLightSaving = RTC_DAYLIGHTSAVING_NONE;
@@ -1711,7 +1708,7 @@ static void MX_RTC_Init(void)
   }
   sDate.WeekDay = RTC_WEEKDAY_SUNDAY;
   sDate.Month = RTC_MONTH_AUGUST;
-  sDate.Date = 0x1;
+  sDate.Date = 0x23;
   sDate.Year = 0x21;
 
   if (HAL_RTC_SetDate(&hrtc, &sDate, RTC_FORMAT_BCD) != HAL_OK)
